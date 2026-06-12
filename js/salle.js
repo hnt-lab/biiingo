@@ -23,8 +23,19 @@ function salleReadyClick() {
 
 function salleUpdateReadyBtn() {
   const b = $('#salleReady');
-  if (b) b.classList.toggle('hide', Sons.unlocked);
+  if (!b) return;
+  b.classList.toggle('hide', Sons.unlocked);
+  if (Sons.unlocked) { b.classList.remove('alerte'); b.innerHTML = '🔊 Plein écran &amp; son'; }
 }
+
+// Garde-fou : un son devait jouer mais l'écran n'a pas encore été cliqué → alerte bien visible
+Sons.onBlocked = function () {
+  const b = $('#salleReady');
+  if (!b || Sons.unlocked) return;
+  b.classList.remove('hide');
+  b.classList.add('alerte');
+  b.textContent = '🔇 Cliquez ici pour activer le son !';
+};
 
 // Bouton ⛶ (visible au survol, comme le ✕) : remettre/quitter le plein écran à tout moment
 function salleToggleFs() {
@@ -80,9 +91,24 @@ function renderSalle(s, prev) {
   const rebuilt = salleEtatAffiche !== s.etat;
   salleEtatAffiche = s.etat;
 
+  if (rebuilt && s.etat !== 'verification') AnimVerdict.stop();
+
   if (s.etat === 'accueil') c.innerHTML = salleAccueilHtml(s);
   else if (s.etat === 'tirage') renderSalleTirage(s, prev, rebuilt);
-  else if (s.etat === 'verification') c.innerHTML = salleVerifHtml(s);
+  else if (s.etat === 'verification') {
+    // On ne reconstruit l'écran que si la vérification a changé (sinon l'animation serait coupée)
+    const vNow = JSON.stringify(s.verification || {});
+    const vPrev = prev ? JSON.stringify(prev.verification || {}) : null;
+    if (rebuilt || vNow !== vPrev) {
+      const pv = (prev && prev.verification && prev.verification.verdict) || '';
+      const nv = (s.verification && s.verification.verdict) || '';
+      const type = nv === 'gagne' ? 'gagne' : 'faux';
+      if (nv && nv !== pv) AnimVerdict.choisir(type, s);
+      if (!nv) AnimVerdict.stop();
+      c.innerHTML = salleVerifHtml(s);
+      if (nv && nv !== pv) AnimVerdict.run(type, s);
+    }
+  }
   else if (s.etat === 'entracte') c.innerHTML = salleEntracteHtml(s);
   else if (s.etat === 'fin') { c.innerHTML = salleFinHtml(s); salleMakeQr(s); }
 
@@ -169,16 +195,17 @@ function salleVerifHtml(s) {
   const coches = v.coches || [];
   const chips = coches.map(n =>
     `<span class="verif-chip ${s.tires.includes(n) ? 'ok' : 'ko'}">${n}</span>`).join('');
+  const animCls = v.verdict ? 'anim-' + AnimVerdict.styleCourant : '';
   let verdict = '';
   if (v.verdict === 'gagne') {
-    verdict = `<div class="verdict gagne"><div class="verdict-big">GAGNÉ&nbsp;!&nbsp;✨</div>
+    verdict = `<div class="verdict gagne ${animCls}"><div class="verdict-big">GAGNÉ&nbsp;!&nbsp;✨</div>
       ${v.gagnantNom ? `<div class="verdict-nom">Bravo ${esc(v.gagnantNom)} 💖</div>` : '<div class="verdict-nom">Bravo ! 💖</div>'}</div>`;
   } else if (v.verdict === 'faux') {
-    verdict = `<div class="verdict faux"><div class="verdict-big">FAUX BINGO&nbsp;💋</div>
+    verdict = `<div class="verdict faux ${animCls}"><div class="verdict-big">FAUX BINGO&nbsp;💋</div>
       <div class="verdict-nom">Il était moins une…</div></div>`;
   }
   return `
-  <div class="salle-center salle-verif ${v.suspense && !v.verdict ? 'suspense' : ''}">
+  <div class="salle-center salle-verif ${v.suspense && !v.verdict ? 'suspense' : ''} ${animCls}">
     ${verdict || `
       <h1 class="verif-titre">${v.suspense ? '🥁 Vérification en cours…' : '🔍 Vérification'}</h1>
       <div class="verif-chips">${chips || '<span class="muted">On vérifie le carton…</span>'}</div>`}

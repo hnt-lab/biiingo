@@ -118,7 +118,11 @@ async function createSoiree() {
     ecrans: { accueil: { texte: '', photo: '' }, fin: { texte: '', liens: [], qrUrl: '' } },
     bandeau: { texte: '', actif: false },
     deco: { haut: '', bas: '' },
-    entracteFond: ''
+    entracteFond: '',
+    anims: {
+      gagne: { style: 'pluie', parts: [], vedette: '' },
+      faux: { style: 'douche', parts: [], vedette: '' }
+    }
   };
   if (presetId) {
     try {
@@ -130,6 +134,7 @@ async function createSoiree() {
         base.bandeau = { texte: d.bandeau || '', actif: false };
         base.deco = d.deco || base.deco;
         base.entracteFond = d.entracteFond || '';
+        if (d.anims && d.anims.gagne) base.anims = d.anims;
       }
     } catch (e) {}
   }

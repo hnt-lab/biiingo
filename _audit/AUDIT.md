@@ -84,6 +84,15 @@
 - Les 3 ajoutés à la liste des sons remplaçables in-app + LISEZMOI.md refait (13 emplacements).
 - ⏳ L'utilisateur cherche les fichiers attente/fin.
 
+## 2026-06-12 — v0.7.0 : animations de verdict personnalisables (théorisé doc 07, validé)
+- **Moteur js/anims.js** : 3 couches (fond / vedette / particules), CSS transform/opacity uniquement, ≤30 particules, nettoyage auto.
+- **6 styles** : GAGNÉ = Pluie de gloire / Feu d'artifice / Cabaret (projecteurs + bulles) · FAUX = Douche froide / Tampon (secousse) / Pschitt. + mode 🎲 Surprise (aléatoire, résolu une fois par verdict).
+- **PNG persos** (transparence conservée — compression PNG dédiée, jamais JPEG) : max 3 particules (320px) + 1 vedette (512px) par verdict, refus si > ~300 Ko après réduction. Sans PNG : emojis (✨💖💋 / 💔🥀). Sauvé dans soirée + présets.
+- **Éditeur** : 2 blocs 🎉/💋 dans Édition (choix de style + gestion des images, vignettes à damier pour voir l'alpha).
+- **Robustesse** : l'écran de vérif ne se reconstruit que si la vérif change (l'animation n'est plus coupée par un snapshot anodin) ; rejouée après F5 ; stoppée en quittant l'état.
+- **Garde-fou son** (incident utilisateur du jour) : un son bloqué faute de clic → le bouton devient rouge « 🔇 Cliquez ici pour activer le son ! » (Sons.onBlocked).
+- `node --check` : à vérifier ci-dessous.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
