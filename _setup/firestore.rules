@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Profil et présets : uniquement leur propriétaire
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Soirées : tout compte connecté peut lire (nécessaire pour rejoindre par code)
+    // et écrire (les MC pilotent ensemble). Suppression réservée au créateur.
+    match /soirees/{id} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null;
+      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Registre des habitués : partagé entre les MC d'une même troupe
+    match /registres/{uid} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

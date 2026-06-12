@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a1426">
+  <title>Biiingo ✨</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <!-- Chargement / configuration manquante -->
+  <div id="loadScreen" class="screen active">
+    <div class="auth-card">
+      <div class="logo">Biiingo<span class="logo-spark">✨</span></div>
+      <p id="loadMsg" class="muted center">Chargement…</p>
+    </div>
+  </div>
+
+  <!-- Connexion / création de compte -->
+  <div id="authScreen" class="screen">
+    <div class="auth-card">
+      <div class="logo">Biiingo<span class="logo-spark">✨</span></div>
+      <p class="muted center">L'outil d'animation de vos soirées bingo</p>
+      <div id="authSignupFields" style="display:none">
+        <label class="field"><span>Nom de scène / pseudo</span>
+          <input id="authPseudo" type="text" maxlength="40" placeholder="Lady Paillette"></label>
+      </div>
+      <label class="field"><span>Email</span>
+        <input id="authEmail" type="email" autocomplete="username" placeholder="vous@email.fr"></label>
+      <label class="field"><span>Mot de passe</span>
+        <input id="authPwd" type="password" autocomplete="current-password" placeholder="••••••••"></label>
+      <div id="authError" class="auth-error"></div>
+      <button id="authLoginBtn" class="btn block primary big" onclick="doLogin()">Se connecter ✨</button>
+      <button id="authSignupBtn" class="btn block primary big" style="display:none" onclick="doSignup()">Créer mon compte 🎉</button>
+      <p class="center">
+        <a id="authToSignup" href="#" onclick="authToggleMode(true);return false">Pas encore de compte ? En créer un</a>
+        <a id="authToLogin" href="#" style="display:none" onclick="authToggleMode(false);return false">J'ai déjà un compte</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Accueil : mes soirées -->
+  <div id="homeScreen" class="screen">
+    <header class="home-head">
+      <div class="logo small">Biiingo<span class="logo-spark">✨</span></div>
+      <div class="home-user"><span id="homePseudo"></span>
+        <button class="btn icon" onclick="confirmAction('Se déconnecter ?','Déconnexion','doLogout()')" title="Déconnexion">⏻</button>
+      </div>
+    </header>
+    <main class="home-main">
+      <div class="home-actions">
+        <button class="btn primary big" onclick="createSoireeFlow()">➕ Nouvelle soirée</button>
+        <button class="btn big" onclick="joinFlow()">🔑 Rejoindre avec un code</button>
+      </div>
+      <h2 class="home-h2">Mes soirées</h2>
+      <div id="soireeList"></div>
+    </main>
+    <footer class="home-foot"><span id="verLabel"></span></footer>
+  </div>
+
+  <!-- Écran de salle (projecteur) -->
+  <div id="salleScreen" class="screen salle">
+    <div id="salleContent"></div>
+    <div id="salleBandeau" class="bandeau"></div>
+    <button class="salle-exit" onclick="salleQuit()" title="Quitter l'affichage">✕</button>
+    <div id="salleLaunch" class="salle-launch">
+      <div class="logo">Biiingo<span class="logo-spark">✨</span></div>
+      <button class="btn primary big" onclick="salleLaunch()">▶ Lancer l'affichage</button>
+      <p class="muted center">Plein écran + son activé d'un seul clic</p>
+    </div>
+  </div>
+
+  <!-- Télécommande MC (téléphone) -->
+  <div id="mcScreen" class="screen mc">
+    <header id="mcHeader" class="mc-header"></header>
+    <main id="mcContent" class="mc-content"></main>
+    <nav id="mcTabs" class="mc-tabs"></nav>
+  </div>
+
+  <!-- Modale générique -->
+  <div id="modalBack" class="modal-back" onclick="if(event.target===this)closeModal()">
+    <div id="modalContent" class="modal-card"></div>
+  </div>
+
+  <!-- Petites confirmations -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Librairies -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Application (scripts séquentiels) -->
+  <script src="js/version.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/sons.js"></script>
+  <script src="js/firebase.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/salle.js"></script>
+  <script src="js/verification.js"></script>
+  <script src="js/mc.js"></script>
+  <script src="js/editeur.js"></script>
+</body>
+</html>
