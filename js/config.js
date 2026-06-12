@@ -16,3 +16,21 @@ const PHOTO_QUALITY = 0.72;     // qualité JPEG
 const PHOTO_WARN_BYTES = 180000; // avertir si une photo dépasse ~180 Ko après compression
 
 const NB_NUMEROS = 90;
+
+// Sons personnalisés (envoyés depuis l'app, stockés avec le compte)
+const SOUND_MAX_BYTES = 700000; // ~700 Ko max par son (limite technique de la base)
+const SONS_LISTE = [
+  { name: 'tirage',    label: 'Numéro tiré',              info: 'discret — joué à chaque numéro' },
+  { name: 'tirage1',   label: 'Numéro tiré (variante)',   info: 'alterné aléatoirement avec le 1er' },
+  { name: 'valid',     label: 'Vérif : numéro sorti',     info: '' },
+  { name: 'valid1',    label: 'Vérif : sorti (variante)', info: 'alterné aléatoirement' },
+  { name: 'rate',      label: 'Vérif : numéro absent',    info: 'le faux espoir' },
+  { name: 'suspense',  label: 'Suspense',                 info: 'tourne en boucle pendant la vérif' },
+  { name: 'gagne',     label: 'GAGNÉ',                    info: '' },
+  { name: 'fauxbingo', label: 'Faux bingo',               info: '' },
+  { name: 'entracte',  label: 'Entracte',                 info: 'au lancement du spectacle' }
+];
+
+// Fond d'écran d'entracte (compressé plus grand qu'un portrait)
+const FOND_MAX_DIM = 1280;
+const FOND_QUALITY = 0.65;

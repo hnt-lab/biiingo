@@ -39,6 +39,35 @@ function mcEditionHtml(s) {
   </div>
 
   <div class="soiree-bloc">
+    <h3 class="mc-h3">🎭 Fond d'écran de l'entracte</h3>
+    <div class="photo-line">
+      ${s.entracteFond ? `<img src="${escAttr(s.entracteFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌌</div>'}
+      <span class="muted small" style="flex:1">Affiché derrière le nom de l'artiste</span>
+      <input type="file" id="edFond" accept="image/*" style="display:none" onchange="edPhotoFond(this)">
+      <button class="btn small" onclick="$('#edFond').click()">📷</button>
+      ${s.entracteFond ? `<button class="btn icon small" onclick="edRemoveFond()">🗑</button>` : ''}
+    </div>
+  </div>
+
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">🔊 Sons (remplaçables — fichiers mp3 courts, max 700 Ko)</h3>
+    ${SONS_LISTE.map(son => `
+      <div class="son-row">
+        <div class="son-info"><b>${son.label}</b>
+          ${son.info ? `<span class="muted small"> · ${son.info}</span>` : ''}
+          <span class="son-statut ${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : ''}">${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : 'base'}</span>
+        </div>
+        <div class="son-btns">
+          <button class="btn icon small" onclick="edSonPlay('${son.name}')" title="Écouter">▶</button>
+          <input type="file" id="edSon_${son.name}" accept="audio/*" style="display:none" onchange="edSonUpload(this,'${son.name}')">
+          <button class="btn icon small" onclick="$('#edSon_${son.name}').click()" title="Remplacer">📁</button>
+          ${S.sonsCustom && S.sonsCustom[son.name] ? `<button class="btn icon small" onclick="edSonReset('${son.name}')" title="Revenir au son de base">🗑</button>` : ''}
+        </div>
+      </div>`).join('')}
+    <p class="muted small">Les sons personnalisés sont gardés avec le compte du créateur de la soirée — valables pour toutes ses soirées.</p>
+  </div>
+
+  <div class="soiree-bloc">
     <h3 class="mc-h3">🏠 Écran d'accueil</h3>
     <label class="field"><span>Message d'accueil</span>
       <input id="edAccTexte" type="text" maxlength="120" value="${escAttr(acc.texte || '')}" placeholder="Ça commence bientôt… ✨"></label>
@@ -110,6 +139,68 @@ function edRemoveDeco(position) {
   soireeUpdate(patch);
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+// ---------- Fond d'écran de l'entracte ----------
+async function edPhotoFond(input) {
+  const data = await compressImage(input.files[0], FOND_MAX_DIM, FOND_QUALITY);
+  if (!data) return;
+  soireeUpdate({ entracteFond: data });
+  toast('Fond d\'entracte mis à jour 🌌');
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+function edRemoveFond() {
+  soireeUpdate({ entracteFond: '' });
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+// ---------- Sons personnalisés (changeables depuis l'app) ----------
+function edSonPlay(name) {
+  // Écoute locale sur le téléphone (en soirée, les sons sortent de l'écran de salle)
+  const a = (Sons.custom[name]) || Sons.audios[name];
+  if (!a || (Sons.missing[name] && !Sons.custom[name])) { toast('Aucun son pour le moment.'); return; }
+  try { a.currentTime = 0; a.play().catch(() => toast('Lecture impossible sur cet appareil.')); } catch (e) {}
+}
+
+function edSonUpload(input, name) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > SOUND_MAX_BYTES) {
+    toast('Fichier trop lourd (max 700 Ko). Choisis un son plus court.');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const owner = S.soiree.ownerUid;
+      await db.collection('sons').doc(owner + '_' + name).set({
+        uid: owner, name, data: reader.result, updatedAt: FV.serverTimestamp()
+      });
+      Sons.setCustom(name, reader.result);
+      S.sonsCustom = S.sonsCustom || {};
+      S.sonsCustom[name] = true;
+      toast('Son remplacé 🔊 (l\'écran de salle l\'utilisera après son prochain chargement)');
+    } catch (e) {
+      toast('Envoi impossible — les règles de la base doivent être mises à jour (voir Claude).');
+    }
+    editionRendered = false;
+    if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null);
+  };
+  reader.readAsDataURL(file);
+}
+
+async function edSonReset(name) {
+  try {
+    await db.collection('sons').doc(S.soiree.ownerUid + '_' + name).delete();
+    Sons.setCustom(name, null);
+    if (S.sonsCustom) delete S.sonsCustom[name];
+    toast('Retour au son de base.');
+  } catch (e) {}
+  editionRendered = false;
+  if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null);
 }
 
 // ---------- Écran d'accueil ----------
@@ -231,6 +322,7 @@ async function edSavePreset() {
       ecrans: s.ecrans || {},
       bandeau: (s.bandeau && s.bandeau.texte) || '',
       deco: s.deco || { haut: '', bas: '' },
+      entracteFond: s.entracteFond || '',
       updatedAt: FV.serverTimestamp()
     });
     toast('Préset enregistré 💾');
@@ -240,8 +332,10 @@ async function edSavePreset() {
   closeModal();
 }
 
-// ---------- Compression d'image (max PHOTO_MAX_DIM px, JPEG) ----------
-function compressImage(file) {
+// ---------- Compression d'image (JPEG, taille max paramétrable) ----------
+function compressImage(file, maxDim, quality) {
+  maxDim = maxDim || PHOTO_MAX_DIM;
+  quality = quality || PHOTO_QUALITY;
   return new Promise(resolve => {
     if (!file) { resolve(null); return; }
     const img = new Image();
@@ -249,13 +343,13 @@ function compressImage(file) {
     img.onload = () => {
       URL.revokeObjectURL(url);
       let w = img.width, h = img.height;
-      const ratio = Math.min(1, PHOTO_MAX_DIM / Math.max(w, h));
+      const ratio = Math.min(1, maxDim / Math.max(w, h));
       w = Math.round(w * ratio); h = Math.round(h * ratio);
       const cv = document.createElement('canvas');
       cv.width = w; cv.height = h;
       cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      const data = cv.toDataURL('image/jpeg', PHOTO_QUALITY);
-      if (data.length > PHOTO_WARN_BYTES * 1.37) toast('Photo lourde — elle est gardée mais évite d\'en mettre trop.');
+      const data = cv.toDataURL('image/jpeg', quality);
+      if (data.length > PHOTO_WARN_BYTES * 1.37 * (maxDim / PHOTO_MAX_DIM)) toast('Photo lourde — elle est gardée mais évite d\'en mettre trop.');
       resolve(data);
     };
     img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };

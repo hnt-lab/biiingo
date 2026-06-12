@@ -56,6 +56,13 @@
 - Verdict : l'écran de salle revient seul à la grille après ~7 s (timer côté MC + garde-fou : taper un numéro ramène toujours au tirage).
 - `node --check` : 11/11 OK. Version 0.2.0.
 
+## 2026-06-12 — v0.3.0 : fond d'entracte + sons changeables depuis l'app
+- **Fond d'écran d'entracte** : photo personnalisable (✏️ Édition), compressée à 1280px, voile sombre pour la lisibilité, sauvée dans les présets.
+- **Sons changeables DANS l'app** : bloc 🔊 dans Édition — chaque son : ▶ écouter / 📁 remplacer (mp3 ≤ 700 Ko) / 🗑 retour au son de base. Stockés par compte créateur (collection `sons`), chargés par l'écran de salle à l'ouverture. ⚠️ NÉCESSITE la mise à jour des règles Firestore (bloc `sons` ajouté à _setup/firestore.rules) — utilisateur informé.
+- **Alternance aléatoire** des variantes tirage/tirage1 et valid/valid1 (fichiers déposés par l'utilisateur).
+- Sons de base complets déposés par l'utilisateur (tirage, valid, rate, suspense + gagne/fauxbingo/entracte à confirmer).
+- `node --check` : 11/11 OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
