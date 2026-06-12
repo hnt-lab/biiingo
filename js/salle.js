@@ -24,6 +24,18 @@ function salleUpdateReadyBtn() {
   if (b) b.classList.toggle('hide', Sons.unlocked);
 }
 
+// Bouton ⛶ (visible au survol, comme le ✕) : remettre/quitter le plein écran à tout moment
+function salleToggleFs() {
+  try {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else document.documentElement.requestFullscreen().catch(() => {});
+  } catch (e) {}
+}
+document.addEventListener('fullscreenchange', () => {
+  const b = $('#salleFs');
+  if (b) b.title = document.fullscreenElement ? 'Quitter le plein écran' : 'Plein écran';
+});
+
 function salleQuit() {
   confirmAction('Quitter l\'affichage de la salle ?', 'Quitter', 'quitSoiree()');
 }

@@ -138,12 +138,14 @@ a { color: var(--rose); }
 .salle-ready.hide { display: none; }
 #salleScreen.bandeau-on .salle-ready { bottom: calc(18px + clamp(38px, 6.5vh, 64px)); }
 
-.salle-exit {
-  position: absolute; top: 10px; left: 10px; z-index: 40;
+.salle-exit, .salle-fs {
+  position: absolute; top: 10px; z-index: 40;
   background: transparent; border: none; color: var(--texte); opacity: .15;
   font-size: 1.2em; padding: 8px 12px; cursor: pointer; transition: opacity .2s;
 }
-.salle-exit:hover { opacity: .8; }
+.salle-exit { left: 10px; }
+.salle-fs { left: 52px; font-size: 1.35em; }
+.salle-exit:hover, .salle-fs:hover { opacity: .85; }
 
 #salleContent { position: absolute; inset: 0; }
 /* Quand le bandeau défile, on lui réserve sa place (il ne recouvre plus la grille) */
