@@ -63,6 +63,11 @@
 - Sons de base complets déposés par l'utilisateur (tirage, valid, rate, suspense + gagne/fauxbingo/entracte à confirmer).
 - `node --check` : 11/11 OK.
 
+## 2026-06-12 — v0.4.0 : icône & installation app + son de reprise
+- **Installable comme une app** : manifest.json (standalone, fr, thème prune) + icônes générées par `_tools/make_icons.js` (grille 3×3, diagonale gagnante or→rose — img/icon-512/192 + apple-touch-icon 180). Liens + metas iOS dans index.html. Pas de service worker (choix assumé) — l'installation Chrome/Android fonctionne sans, iOS passe par « Sur l'écran d'accueil ».
+- **Son de reprise de partie** (demande utilisateur) : transition entracte → tirage joue `reprise.mp3` s'il existe (fichier ou perso), sinon le son d'entracte. Ajouté à la liste des sons remplaçables in-app.
+- `node --check` : OK. Icône vérifiée visuellement (rendu conforme).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
