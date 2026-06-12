@@ -6,7 +6,38 @@ function mcEditionHtml(s) {
   const fin = (s.ecrans && s.ecrans.fin) || {};
   const prog = s.programme || [];
   const liens = fin.liens || [];
+  const band = s.bandeau || {};
+  const deco = s.deco || {};
   return `
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">📢 Bandeau défilant</h3>
+    <label class="field"><span>Texte (pendant la partie si affiché, toujours pendant l'entracte)</span>
+      <input id="edBandTxt" type="text" maxlength="200" value="${escAttr(band.texte || '')}"
+             placeholder="Pensez au bar 🍹 · Prochaine soirée le 28 juin !"></label>
+    <div class="mc-actions-row">
+      <button class="btn" onclick="edBandeauSave(false)">💾 Garder masqué</button>
+      <button class="btn ${band.actif ? 'primary' : ''}" onclick="edBandeauSave(true)">📢 Afficher</button>
+    </div>
+  </div>
+
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">🖼 Décoration de l'écran (colonne du dernier numéro)</h3>
+    <div class="photo-line">
+      ${deco.haut ? `<img src="${escAttr(deco.haut)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
+      <span class="muted small" style="flex:1">En haut</span>
+      <input type="file" id="edDecoHaut" accept="image/*" style="display:none" onchange="edPhotoDeco(this,'haut')">
+      <button class="btn small" onclick="$('#edDecoHaut').click()">📷</button>
+      ${deco.haut ? `<button class="btn icon small" onclick="edRemoveDeco('haut')">🗑</button>` : ''}
+    </div>
+    <div class="photo-line">
+      ${deco.bas ? `<img src="${escAttr(deco.bas)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
+      <span class="muted small" style="flex:1">En bas</span>
+      <input type="file" id="edDecoBas" accept="image/*" style="display:none" onchange="edPhotoDeco(this,'bas')">
+      <button class="btn small" onclick="$('#edDecoBas').click()">📷</button>
+      ${deco.bas ? `<button class="btn icon small" onclick="edRemoveDeco('bas')">🗑</button>` : ''}
+    </div>
+  </div>
+
   <div class="soiree-bloc">
     <h3 class="mc-h3">🏠 Écran d'accueil</h3>
     <label class="field"><span>Message d'accueil</span>
@@ -53,6 +84,34 @@ function mcEditionHtml(s) {
   </div>`;
 }
 
+// ---------- Bandeau (éditable en cours de route) ----------
+function edBandeauSave(actif) {
+  const texte = $('#edBandTxt').value.trim();
+  soireeUpdate({ bandeau: { texte, actif: actif && !!texte } });
+  toast(actif && texte ? 'Bandeau affiché 📢' : 'Bandeau enregistré (masqué)');
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+// ---------- Décoration de l'écran de salle ----------
+async function edPhotoDeco(input, position) {
+  const data = await compressImage(input.files[0]);
+  if (!data) return;
+  const patch = {};
+  patch['deco.' + position] = data;
+  soireeUpdate(patch);
+  toast('Décoration mise à jour 🖼');
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+function edRemoveDeco(position) {
+  const patch = {};
+  patch['deco.' + position] = '';
+  soireeUpdate(patch);
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
 // ---------- Écran d'accueil ----------
 let edAccPhotoData = null; // photo en attente d'enregistrement
 async function edPhotoAccueil(input) {
@@ -76,7 +135,7 @@ function edArtisteModal() {
   modal(`
     <h3>➕ Ajouter un artiste</h3>
     <label class="field"><span>Nom de scène</span>
-      <input id="edArtNom" type="text" maxlength="60" placeholder="Lady Paillette"></label>
+      <input id="edArtNom" type="text" maxlength="60" placeholder="Aude Dubain"></label>
     <label class="field"><span>Message affiché (optionnel)</span>
       <input id="edArtMsg" type="text" maxlength="120" placeholder="Applaudissez bien fort !"></label>
     <div class="photo-line">
@@ -171,6 +230,7 @@ async function edSavePreset() {
       programme: s.programme || [],
       ecrans: s.ecrans || {},
       bandeau: (s.bandeau && s.bandeau.texte) || '',
+      deco: s.deco || { haut: '', bas: '' },
       updatedAt: FV.serverTimestamp()
     });
     toast('Préset enregistré 💾');

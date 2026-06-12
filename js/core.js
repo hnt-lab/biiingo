@@ -116,7 +116,8 @@ async function createSoiree() {
   let base = {
     programme: [],
     ecrans: { accueil: { texte: '', photo: '' }, fin: { texte: '', liens: [], qrUrl: '' } },
-    bandeau: { texte: '', actif: false }
+    bandeau: { texte: '', actif: false },
+    deco: { haut: '', bas: '' }
   };
   if (presetId) {
     try {
@@ -126,6 +127,7 @@ async function createSoiree() {
         base.programme = d.programme || [];
         base.ecrans = d.ecrans || base.ecrans;
         base.bandeau = { texte: d.bandeau || '', actif: false };
+        base.deco = d.deco || base.deco;
       }
     } catch (e) {}
   }
@@ -179,12 +181,14 @@ async function joinByCode() {
 }
 
 // ---------- Ouverture & synchro temps réel ----------
-function openSoiree(id, mode) {
+function openSoiree(id, mode, gesture) {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   S.soireeId = id; S.mode = mode; S.soiree = null; S.prev = null; S.mcTab = 'tirage';
+  // On retient la session : après un F5, on revient directement ici (demande utilisateur)
+  try { localStorage.setItem('biiingo_session', JSON.stringify({ id, mode })); } catch (e) {}
   if (mode === 'salle') {
     showScreen('salleScreen');
-    $('#salleLaunch').classList.add('show'); // clic requis : plein écran + déblocage du son
+    salleOpenInit(gesture !== false); // ouvert via un clic → plein écran + son immédiats
   } else {
     showScreen('mcScreen');
   }
@@ -202,6 +206,7 @@ function openSoiree(id, mode) {
 function quitSoiree() {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   Sons.stopAll();
+  try { localStorage.removeItem('biiingo_session'); } catch (e) {}
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   S.soireeId = null; S.soiree = null; S.mode = null;
   renderHome();

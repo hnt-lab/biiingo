@@ -40,6 +40,22 @@
 - [ ] Sons : proposition Pixabay transmise à l'utilisateur (il choisit/télécharge, ou fournit les siens) — fichiers mp3 toujours absents
 - [ ] **TEST UTILISATEUR EN COURS** → feuille : _audit/FEUILLE_DE_TEST_v0.1.0.md
 
+## 2026-06-12 — v0.2.0 : lot de corrections n°1 (10 retours utilisateur, tous traités)
+| Retour | Traitement |
+|---|---|
+| Suggestions noms de scène | Placeholders « Diamond Dust » (compte, entracte libre) et « Aude Dubain » (artiste) |
+| Bandeau éditable dans Édition | Bloc 📢 ajouté dans l'onglet Édition (texte + afficher/masquer) |
+| Bandeau recouvrait la grille | Espace réservé (`#salleScreen.bandeau-on`) : la grille se rétrécit |
+| Boutons numéros plus gros sur téléphone | ≤520 px : grille en 5 colonnes (1 dizaine = 2 lignes), tous les boutons agrandis |
+| Responsive | mc-content centré max 560px, tabs/boutons agrandis sur mobile |
+| Gagnant validé → retour onglet Tirage | `S.mcTab='tirage'` après verdict (gagné ET faux bingo) |
+| Objectif suivant automatique après un gagné | quine→double→carton + toast ; carton = message « manche suiv. quand vous voulez » |
+| Colonne de droite épurée + emplacements déco | Historique supprimé, compteur déplacé en haut, dernier numéro centré, photos déco haut/bas éditables (soirée + préset) |
+| Tuto au démarrage + accessible | js/tuto.js : auto à la 1re visite (localStorage) + bouton ❓ à l'accueil |
+| F5 écran de salle → retour direct au tableau | Session mémorisée (localStorage) → réouverture auto ; bouton flottant « 🔊 Plein écran & son » (clic exigé par le navigateur après un F5) |
+- Verdict : l'écran de salle revient seul à la grille après ~7 s (timer côté MC + garde-fou : taper un numéro ramène toujours au tirage).
+- `node --check` : 11/11 OK. Version 0.2.0.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

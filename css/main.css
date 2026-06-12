@@ -128,12 +128,15 @@ a { color: var(--rose); }
    ============================================================ */
 .screen.salle { background: radial-gradient(120% 100% at 50% 0%, #2b1f44 0%, var(--bg) 70%); overflow: hidden; }
 
-.salle-launch {
-  position: absolute; inset: 0; z-index: 50; display: none;
-  flex-direction: column; align-items: center; justify-content: center; gap: 22px;
-  background: var(--bg);
+/* Bouton flottant après un F5 (le navigateur exige un clic pour le son/plein écran) */
+.salle-ready {
+  position: absolute; right: 18px; bottom: 18px; z-index: 45;
+  background: linear-gradient(120deg, #b3457e, var(--rose)); color: #fff;
+  border: none; border-radius: 40px; padding: 12px 20px; font-size: 1em; font-weight: 700;
+  cursor: pointer; animation: dotPulse 1.6s infinite;
 }
-.salle-launch.show { display: flex; }
+.salle-ready.hide { display: none; }
+#salleScreen.bandeau-on .salle-ready { bottom: calc(18px + clamp(38px, 6.5vh, 64px)); }
 
 .salle-exit {
   position: absolute; top: 10px; left: 10px; z-index: 40;
@@ -143,6 +146,8 @@ a { color: var(--rose); }
 .salle-exit:hover { opacity: .8; }
 
 #salleContent { position: absolute; inset: 0; }
+/* Quand le bandeau défile, on lui réserve sa place (il ne recouvre plus la grille) */
+#salleScreen.bandeau-on #salleContent { bottom: clamp(38px, 6.5vh, 64px); }
 
 .salle-center {
   position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -167,11 +172,18 @@ a { color: var(--rose); }
 
 /* ----- Tirage ----- */
 .salle-tirage { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 1.6vh 1.6vw; }
-.salle-haut { text-align: center; padding-bottom: 1.2vh; }
+.salle-haut {
+  display: flex; align-items: center; justify-content: center; gap: 1.2vw;
+  padding-bottom: 1.2vh;
+}
 .salle-manche {
   display: inline-block; font-size: clamp(1.1em, 3.2vh, 2.2em);
   background: var(--carte); border: 1px solid var(--bord); border-radius: 40px;
   padding: .5vh 2.4vw; color: var(--texte);
+}
+.salle-compteur-chip {
+  background: var(--carte); border: 1px solid var(--bord); border-radius: 40px;
+  padding: .5vh 1.4vw; color: var(--muted); font-size: clamp(.9em, 2.4vh, 1.5em);
 }
 .salle-manche b { color: var(--or); }
 .obj-detail { color: var(--muted); font-size: .75em; }
@@ -199,10 +211,15 @@ a { color: var(--rose); }
 }
 .salle-side {
   width: clamp(180px, 22vw, 340px); display: flex; flex-direction: column;
-  align-items: center; gap: 1vh;
-  background: var(--carte); border: 1px solid var(--bord); border-radius: 20px; padding: 2vh 1vw;
+  align-items: center; justify-content: space-between; gap: 1vh;
+  background: var(--carte); border: 1px solid var(--bord); border-radius: 20px; padding: 1.4vh 1vw;
 }
-.dernier-label, .histo-label { color: var(--muted); font-size: clamp(.8em, 2vh, 1.2em); text-transform: uppercase; letter-spacing: .12em; }
+.side-centre {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1vh;
+}
+.side-deco { width: 100%; display: flex; justify-content: center; }
+.side-deco img { max-width: 100%; max-height: 20vh; border-radius: 14px; object-fit: contain; }
+.dernier-label { color: var(--muted); font-size: clamp(.8em, 2vh, 1.2em); text-transform: uppercase; letter-spacing: .12em; }
 .dernier-num {
   font-size: clamp(4em, 22vh, 13em); font-weight: 800; line-height: 1;
   background: linear-gradient(120deg, var(--or), var(--rose));
@@ -215,12 +232,6 @@ a { color: var(--rose); }
   70% { transform: scale(.96); }
   100% { transform: scale(1); }
 }
-.histo { display: flex; gap: .6vw; flex-wrap: wrap; justify-content: center; }
-.histo-num {
-  background: var(--bg2); border: 1px solid var(--bord); border-radius: 10px;
-  padding: .6vh 1vw; font-weight: 700; font-size: clamp(1em, 3vh, 1.8em); color: var(--texte);
-}
-.compteur { margin-top: auto; color: var(--muted); font-size: clamp(.9em, 2.2vh, 1.3em); }
 
 /* ----- Vérification ----- */
 .salle-verif.suspense { animation: suspensePulse 1.6s ease-in-out infinite; }
@@ -303,7 +314,7 @@ a { color: var(--rose); }
   background: var(--carte); border: 1px solid var(--or); color: var(--or);
   border-radius: 10px; padding: 4px 10px; font-weight: 800; letter-spacing: .12em;
 }
-.mc-content { flex: 1; overflow: auto; padding: 12px; padding-bottom: 18px; }
+.mc-content { flex: 1; overflow: auto; padding: 12px; padding-bottom: 18px; width: 100%; max-width: 560px; margin: 0 auto; }
 .mc-tabs {
   display: flex; border-top: 1px solid var(--bord); background: var(--bg2);
   padding-bottom: env(safe-area-inset-bottom);
@@ -386,11 +397,32 @@ a { color: var(--rose); }
 .obj-choices .btn { text-align: left; padding: 12px 16px; }
 .obj-choices small { color: inherit; opacity: .75; }
 
+/* ---------- Tutoriel ---------- */
+.tuto-bloc { margin: 14px 0; }
+.tuto-bloc b { color: var(--or); }
+.tuto-bloc p { color: var(--texte); margin-top: 4px; line-height: 1.5; font-size: .95em; }
+
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
   .home-actions { grid-template-columns: 1fr; }
   .soiree-card { flex-direction: column; align-items: stretch; }
   .soiree-actions .btn { flex: 1; }
+}
+/* Téléphone : boutons des numéros nettement plus gros (5 par ligne = une dizaine sur 2 lignes) */
+@media (max-width: 520px) {
+  .mc-grille { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .mc-cell { font-size: 1.3em; border-radius: 12px; }
+  .mc-grille .mc-cell:nth-child(10n+1), .mc-grille .mc-cell:nth-child(10n+2),
+  .mc-grille .mc-cell:nth-child(10n+3), .mc-grille .mc-cell:nth-child(10n+4),
+  .mc-grille .mc-cell:nth-child(10n+5) { margin-top: 6px; }
+  .mc-grille .mc-cell:nth-child(1), .mc-grille .mc-cell:nth-child(2),
+  .mc-grille .mc-cell:nth-child(3), .mc-grille .mc-cell:nth-child(4),
+  .mc-grille .mc-cell:nth-child(5) { margin-top: 0; }
+  .btn { padding: 12px 16px; }
+  .btn.small { padding: 8px 12px; }
+  .btn.icon { padding: 8px 14px; }
+  .mc-actions-row .btn { padding: 12px 8px; }
+  .mc-tab { padding: 11px 2px 9px; font-size: .78em; }
 }
 @media (orientation: portrait) {
   /* Écran de salle affiché par accident sur un téléphone : on garde lisible */

@@ -10,7 +10,15 @@ function initAuth() {
     } catch (e) {
       S.profile = { pseudo: user.email ? user.email.split('@')[0] : 'MC' };
     }
-    renderHome();
+    // Après un F5 : retour direct là où on était (écran de salle ou télécommande)
+    let sess = null;
+    try { sess = JSON.parse(localStorage.getItem('biiingo_session') || 'null'); } catch (e) {}
+    if (sess && sess.id) {
+      openSoiree(sess.id, sess.mode === 'salle' ? 'salle' : 'mc', false);
+    } else {
+      renderHome();
+      maybeShowTuto();
+    }
   });
 }
 
