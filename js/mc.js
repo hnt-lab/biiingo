@@ -203,6 +203,10 @@ function mcSoireeHtml(s) {
     }).join('') : '<p class="muted">Aucun gagnant pour l\'instant.</p>'}
   </div>
   <div class="soiree-bloc">
+    <h3 class="mc-h3">📖 Aide</h3>
+    <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>
+  </div>
+  <div class="soiree-bloc">
     ${s.statut === 'active'
       ? `<button class="btn block warn" onclick="confirmAction('Terminer la soirée ?<br><span class=&quot;muted&quot;>L\\'écran passera aux remerciements + hall of fame.</span>','Terminer 🏁','mcTerminer()')">🏁 Terminer la soirée</button>`
       : `<button class="btn block" onclick="soireeUpdate({statut:'active',etat:'tirage'})">🔓 Rouvrir la soirée</button>`}

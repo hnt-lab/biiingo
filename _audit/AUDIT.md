@@ -68,6 +68,11 @@
 - **Son de reprise de partie** (demande utilisateur) : transition entracte → tirage joue `reprise.mp3` s'il existe (fichier ou perso), sinon le son d'entracte. Ajouté à la liste des sons remplaçables in-app.
 - `node --check` : OK. Icône vérifiée visuellement (rendu conforme).
 
+## 2026-06-12 — v0.5.0 : visite guidée + contour du bandeau
+- **Tutoriel transformé en visite guidée** (demande : « tuto plus guidé pour les moins studieux ») : 9 étapes, un concept par écran, visuels mockups (boutons, code, mini-grille, vérif), points de progression cliquables, Précédent/Suivant/Passer. Auto à la 1re visite + ❓ accueil + **⚙️ Soirée → « 📖 Revoir le tutoriel »** (le « settings » demandé).
+- **Bandeau** : contour doré (liserés haut/bas 3px + halo léger).
+- `node --check` : OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

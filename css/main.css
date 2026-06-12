@@ -291,6 +291,11 @@ a { color: var(--rose); }
   position: absolute; left: 0; right: 0; bottom: 0; height: 0; overflow: hidden;
   background: linear-gradient(90deg, #b3457e, #7e3a9e); z-index: 30;
   display: flex; align-items: center; transition: height .3s;
+  border-top: 0 solid var(--or); border-bottom: 0 solid var(--or);
+}
+.bandeau.show {
+  border-top-width: 3px; border-bottom-width: 3px;
+  box-shadow: 0 -4px 18px #e8c55833;
 }
 .bandeau.show { height: clamp(38px, 6.5vh, 64px); }
 .bandeau-piste { display: flex; white-space: nowrap; animation: defile 22s linear infinite; }
@@ -412,10 +417,37 @@ a { color: var(--rose); }
 .obj-choices .btn { text-align: left; padding: 12px 16px; }
 .obj-choices small { color: inherit; opacity: .75; }
 
-/* ---------- Tutoriel ---------- */
-.tuto-bloc { margin: 14px 0; }
-.tuto-bloc b { color: var(--or); }
-.tuto-bloc p { color: var(--texte); margin-top: 4px; line-height: 1.5; font-size: .95em; }
+/* ---------- Tutoriel (visite guidée) ---------- */
+.tg-etape { text-align: right; color: var(--muted); font-size: .8em; }
+.tg-scene {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  font-size: 2.6em; padding: 18px 0 8px; min-height: 86px;
+}
+.tg-fleche { color: var(--rose); animation: dotPulse 1.4s infinite; font-size: .8em; }
+.tg-btn { pointer-events: none; font-size: .45em; }
+.tg-code {
+  font-size: .75em; font-weight: 800; letter-spacing: .3em; color: var(--or);
+  border: 2px solid var(--or); border-radius: 14px; padding: 8px 18px;
+}
+.tg-grille { display: grid; grid-template-columns: repeat(3, 52px); gap: 8px; }
+.tg-cell {
+  display: flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; border-radius: 10px; font-size: .42em; font-weight: 700;
+  background: var(--bg2); border: 1px solid var(--bord); color: var(--muted);
+}
+.tg-cell.lit { background: linear-gradient(135deg, var(--or), var(--rose)); color: #fff; border-color: transparent; }
+.tg-cell.coche-ok { background: #1d5a39; border-color: var(--ok); color: #b8ffd9; }
+.tg-cell.coche-ko { background: #5d2330; border-color: var(--ko); color: #ffc4c9; }
+.tg-titre { text-align: center; margin: 6px 0 10px; }
+.tg-texte { line-height: 1.55; font-size: .95em; color: var(--texte); }
+.tg-texte b { color: var(--or); }
+.tg-dots { display: flex; gap: 7px; justify-content: center; margin-top: 16px; }
+.tg-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--bord); cursor: pointer;
+  transition: transform .15s, background .15s;
+}
+.tg-dot.on { background: var(--rose); transform: scale(1.35); }
+.tg-btns { justify-content: space-between; }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 640px) {
