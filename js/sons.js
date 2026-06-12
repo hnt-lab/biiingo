@@ -13,8 +13,14 @@ const SOUND_FILES = {
   gagne:     'sounds/gagne.mp3',      // verdict GAGNÉ
   fauxbingo: 'sounds/fauxbingo.mp3',  // verdict FAUX BINGO
   entracte:  'sounds/entracte.mp3',   // lancement d'un entracte
-  reprise:   'sounds/reprise.mp3'     // reprise de la partie après l'entracte (sinon : son d'entracte)
+  reprise:   'sounds/reprise.mp3',    // reprise de la partie après l'entracte (sinon : son d'entracte)
+  attente:   'sounds/attente.mp3',    // musique d'attente — boucle pendant l'écran d'accueil
+  debut:     'sounds/debut.mp3',      // début de soirée (accueil → manche 1)
+  fin:       'sounds/fin.mp3'         // fin de soirée (passage à l'écran de fin)
 };
+
+// Sons joués en boucle
+const SOUND_LOOPS = { suspense: true, attente: true };
 
 // Variantes possibles par son de base
 const SOUND_VARIANTES = { tirage: ['tirage', 'tirage1', 'tirage2'], valid: ['valid', 'valid1'] };
@@ -31,9 +37,9 @@ const Sons = {
       const a = new Audio(SOUND_FILES[name]);
       a.preload = 'auto';
       a.addEventListener('error', () => { Sons.missing[name] = true; });
+      if (SOUND_LOOPS[name]) a.loop = true;
       this.audios[name] = a;
     }
-    this.audios.suspense.loop = true;
   },
 
   // Sons personnalisés (data audio envoyée depuis l'éditeur, stockée avec le compte)
@@ -41,7 +47,7 @@ const Sons = {
     if (!dataUrl) { delete this.custom[name]; return; }
     const a = new Audio(dataUrl);
     a.preload = 'auto';
-    if (name === 'suspense') a.loop = true;
+    if (SOUND_LOOPS[name]) a.loop = true;
     this.custom[name] = a;
   },
   clearCustom() { this.custom = {}; },
