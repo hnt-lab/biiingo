@@ -219,7 +219,7 @@ function salleFinHtml(s) {
     `<div class="fin-lien">${esc(l.label)}${l.label && l.url ? ' · ' : ''}${esc(l.url)}</div>`).join('');
   return `
   <div class="salle-center salle-fin">
-    <h1 class="salle-titre-event">${e.texte ? esc(e.texte) : 'Merci à toutes et tous ! 💖'}</h1>
+    <h1 class="salle-titre-event">${e.texte ? esc(e.texte) : 'Merci à toutes et tous ! ❤️'}</h1>
     ${hofHtml}
     <div class="fin-bas">
       <div class="fin-liens">${liens}</div>
