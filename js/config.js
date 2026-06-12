@@ -29,7 +29,8 @@ const SONS_LISTE = [
   { name: 'suspense',  label: 'Suspense',                 info: 'tourne en boucle pendant la vérif' },
   { name: 'gagne',     label: 'GAGNÉ',                    info: '' },
   { name: 'fauxbingo', label: 'Faux bingo',               info: '' },
-  { name: 'entracte',  label: 'Entracte',                 info: 'au lancement du spectacle' }
+  { name: 'entracte',  label: 'Entracte',                 info: 'au lancement du spectacle' },
+  { name: 'reprise',   label: 'Reprise de partie',        info: 'après l\'entracte (sinon : son d\'entracte)' }
 ];
 
 // Fond d'écran d'entracte (compressé plus grand qu'un portrait)

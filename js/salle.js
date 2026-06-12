@@ -33,6 +33,8 @@ function renderSalle(s, prev) {
   if (prev) {
     if (s.etat === 'tirage' && s.tires.length > (prev.tires ? prev.tires.length : 0)) Sons.play('tirage');
     if (s.etat === 'entracte' && prev.etat !== 'entracte') Sons.play('entracte');
+    // Reprise de la partie après l'entracte (son dédié, sinon le son d'entracte)
+    if (s.etat === 'tirage' && prev.etat === 'entracte') Sons.play(Sons.has('reprise') ? 'reprise' : 'entracte');
     const pc = (prev.verification && prev.verification.coches) || [];
     const nc = (s.verification && s.verification.coches) || [];
     if (nc.length > pc.length) {

@@ -12,7 +12,8 @@ const SOUND_FILES = {
   suspense:  'sounds/suspense.mp3',   // boucle pendant la vérification en mode suspense
   gagne:     'sounds/gagne.mp3',      // verdict GAGNÉ
   fauxbingo: 'sounds/fauxbingo.mp3',  // verdict FAUX BINGO
-  entracte:  'sounds/entracte.mp3'    // lancement d'un entracte
+  entracte:  'sounds/entracte.mp3',   // lancement d'un entracte
+  reprise:   'sounds/reprise.mp3'     // reprise de la partie après l'entracte (sinon : son d'entracte)
 };
 
 // Variantes possibles par son de base
@@ -52,6 +53,8 @@ const Sons = {
     const choisi = variantes[Math.floor(Math.random() * variantes.length)];
     return this.audios[choisi] || null;
   },
+
+  has(name) { return !!this.custom[name] || !this.missing[name]; },
 
   // Les navigateurs bloquent le son tant qu'il n'y a pas eu un clic sur la page.
   unlock() {
