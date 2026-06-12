@@ -21,7 +21,8 @@ const NB_NUMEROS = 90;
 const SOUND_MAX_BYTES = 700000; // ~700 Ko max par son (limite technique de la base)
 const SONS_LISTE = [
   { name: 'tirage',    label: 'Numéro tiré',              info: 'discret — joué à chaque numéro' },
-  { name: 'tirage1',   label: 'Numéro tiré (variante)',   info: 'alterné aléatoirement avec le 1er' },
+  { name: 'tirage1',   label: 'Numéro tiré (variante 2)', info: 'alterné aléatoirement' },
+  { name: 'tirage2',   label: 'Numéro tiré (variante 3)', info: 'alterné aléatoirement' },
   { name: 'valid',     label: 'Vérif : numéro sorti',     info: '' },
   { name: 'valid1',    label: 'Vérif : sorti (variante)', info: 'alterné aléatoirement' },
   { name: 'rate',      label: 'Vérif : numéro absent',    info: 'le faux espoir' },

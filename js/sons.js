@@ -5,6 +5,7 @@
 const SOUND_FILES = {
   tirage:    'sounds/tirage.mp3',     // un numéro vient d'être tiré (discret — joué ~90 fois)
   tirage1:   'sounds/tirage1.mp3',    // variante optionnelle du tirage
+  tirage2:   'sounds/tirage2.mp3',    // variante optionnelle du tirage
   valid:     'sounds/valid.mp3',      // vérification : numéro présent (sorti)
   valid1:    'sounds/valid1.mp3',     // variante optionnelle
   rate:      'sounds/rate.mp3',       // vérification : numéro ABSENT (pas sorti)
@@ -15,7 +16,7 @@ const SOUND_FILES = {
 };
 
 // Variantes possibles par son de base
-const SOUND_VARIANTES = { tirage: ['tirage', 'tirage1'], valid: ['valid', 'valid1'] };
+const SOUND_VARIANTES = { tirage: ['tirage', 'tirage1', 'tirage2'], valid: ['valid', 'valid1'] };
 
 const Sons = {
   unlocked: false,
