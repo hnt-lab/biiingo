@@ -164,8 +164,11 @@ function salleVerifHtml(s) {
 // ---------- État : ENTRACTE ----------
 function salleEntracteHtml(s) {
   const e = s.entracte || {};
+  const fond = s.entracteFond
+    ? ` style="background-image:linear-gradient(rgba(26,20,38,.78),rgba(26,20,38,.78)),url(${s.entracteFond});background-size:cover;background-position:center"`
+    : '';
   return `
-  <div class="salle-center salle-entracte">
+  <div class="salle-center salle-entracte"${fond}>
     <div class="entracte-tag">🎭 Entracte</div>
     ${e.photo ? `<img class="salle-photo grande" src="${escAttr(e.photo)}" alt="">` : ''}
     <h1 class="entracte-nom">${esc(e.nom || 'Place au spectacle !')}</h1>

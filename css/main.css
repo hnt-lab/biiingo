@@ -384,6 +384,21 @@ a { color: var(--rose); }
 }
 .prog-info { flex: 1; min-width: 0; }
 .photo-line { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.prog-photo.large { width: 72px; height: 48px; }
+
+.son-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--bord);
+}
+.son-row:last-of-type { border-bottom: none; }
+.son-info { flex: 1; min-width: 0; font-size: .92em; }
+.son-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.son-statut {
+  font-size: .72em; padding: 2px 8px; border-radius: 10px; margin-left: 6px;
+  background: var(--bg2); border: 1px solid var(--bord); color: var(--muted);
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.son-statut.perso { background: #1d5a39; border-color: var(--ok); color: #b8ffd9; }
 
 .verif-intro { max-width: 480px; margin: 0 auto; padding-top: 8vh; text-align: center; }
 .verif-intro .muted { margin: 12px 0; line-height: 1.5; }

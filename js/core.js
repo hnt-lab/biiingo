@@ -117,7 +117,8 @@ async function createSoiree() {
     programme: [],
     ecrans: { accueil: { texte: '', photo: '' }, fin: { texte: '', liens: [], qrUrl: '' } },
     bandeau: { texte: '', actif: false },
-    deco: { haut: '', bas: '' }
+    deco: { haut: '', bas: '' },
+    entracteFond: ''
   };
   if (presetId) {
     try {
@@ -128,6 +129,7 @@ async function createSoiree() {
         base.ecrans = d.ecrans || base.ecrans;
         base.bandeau = { texte: d.bandeau || '', actif: false };
         base.deco = d.deco || base.deco;
+        base.entracteFond = d.entracteFond || '';
       }
     } catch (e) {}
   }
@@ -197,15 +199,34 @@ function openSoiree(id, mode, gesture) {
     const premier = !S.soiree;
     S.prev = S.soiree;
     S.soiree = doc.data();
-    if (premier) loadRegistre(); // registre des habitués du créateur de la soirée
+    if (premier) { loadRegistre(); loadCustomSounds(); } // données liées au créateur de la soirée
     if (S.mode === 'salle') renderSalle(S.soiree, S.prev);
     else renderMC(S.soiree, S.prev);
   }, () => { /* erreur réseau passagère : Firestore réessaie tout seul */ });
 }
 
+// Sons personnalisés du compte créateur de la soirée (remplacent les sons de base)
+async function loadCustomSounds() {
+  S.sonsCustom = {};
+  Sons.clearCustom();
+  try {
+    const owner = (S.soiree && S.soiree.ownerUid) || S.user.uid;
+    const snap = await db.collection('sons').where('uid', '==', owner).get();
+    snap.forEach(d => {
+      const x = d.data();
+      if (x.name && x.data) {
+        Sons.setCustom(x.name, x.data);
+        S.sonsCustom[x.name] = true;
+      }
+    });
+  } catch (e) { /* règles pas encore à jour ou réseau : on reste sur les sons de base */ }
+}
+
 function quitSoiree() {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   Sons.stopAll();
+  Sons.clearCustom();
+  S.sonsCustom = {};
   try { localStorage.removeItem('biiingo_session'); } catch (e) {}
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   S.soireeId = null; S.soiree = null; S.mode = null;
