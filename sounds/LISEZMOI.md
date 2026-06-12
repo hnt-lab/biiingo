@@ -10,9 +10,7 @@ Un fichier absent = pas de son (l'app fonctionne quand même).
 | `attente.mp3` | écran d'accueil affiché | **en boucle** — musique d'ambiance d'attente |
 | `debut.mp3` | début de soirée (accueil → manche 1) | |
 | `tirage.mp3` | un numéro est tiré (~90 fois par grille !) | TRÈS discret |
-| `tirage1.mp3` / `tirage2.mp3` | variantes du tirage | alternées aléatoirement |
 | `valid.mp3` | vérification : le numéro est bien sorti | « ding » doux |
-| `valid1.mp3` | variante | alternée aléatoirement |
 | `rate.mp3` | vérification : le numéro n'est PAS sorti | le faux espoir |
 | `suspense.mp3` | vérification en mode suspense | **en boucle** |
 | `gagne.mp3` | verdict GAGNÉ | |

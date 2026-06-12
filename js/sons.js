@@ -1,13 +1,9 @@
 // Moteur de sons — joué UNIQUEMENT par l'écran de salle (PC branché à la sono).
-// 3 niveaux : sons PERSONNALISÉS (envoyés depuis l'app, par compte) > fichiers du dossier sounds/ > silence.
-// Variantes : si tirage1.mp3 / valid1.mp3 existent, l'app alterne aléatoirement pour casser la répétition.
+// 2 niveaux : sons PERSONNALISÉS (envoyés depuis l'app, par compte) > fichiers du dossier sounds/ > silence.
 
 const SOUND_FILES = {
   tirage:    'sounds/tirage.mp3',     // un numéro vient d'être tiré (discret — joué ~90 fois)
-  tirage1:   'sounds/tirage1.mp3',    // variante optionnelle du tirage
-  tirage2:   'sounds/tirage2.mp3',    // variante optionnelle du tirage
   valid:     'sounds/valid.mp3',      // vérification : numéro présent (sorti)
-  valid1:    'sounds/valid1.mp3',     // variante optionnelle
   rate:      'sounds/rate.mp3',       // vérification : numéro ABSENT (pas sorti)
   suspense:  'sounds/suspense.mp3',   // boucle pendant la vérification en mode suspense
   gagne:     'sounds/gagne.mp3',      // verdict GAGNÉ
@@ -21,9 +17,6 @@ const SOUND_FILES = {
 
 // Sons joués en boucle
 const SOUND_LOOPS = { suspense: true, attente: true };
-
-// Variantes possibles par son de base
-const SOUND_VARIANTES = { tirage: ['tirage', 'tirage1', 'tirage2'], valid: ['valid', 'valid1'] };
 
 const Sons = {
   unlocked: false,
@@ -54,10 +47,8 @@ const Sons = {
 
   _pick(name) {
     if (this.custom[name]) return this.custom[name];
-    const variantes = (SOUND_VARIANTES[name] || [name]).filter(v => !this.missing[v]);
-    if (!variantes.length) return null;
-    const choisi = variantes[Math.floor(Math.random() * variantes.length)];
-    return this.audios[choisi] || null;
+    if (this.missing[name]) return null;
+    return this.audios[name] || null;
   },
 
   has(name) { return !!this.custom[name] || !this.missing[name]; },
