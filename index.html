@@ -24,7 +24,7 @@
       <p class="muted center">L'outil d'animation de vos soirées bingo</p>
       <div id="authSignupFields" style="display:none">
         <label class="field"><span>Nom de scène / pseudo</span>
-          <input id="authPseudo" type="text" maxlength="40" placeholder="Lady Paillette"></label>
+          <input id="authPseudo" type="text" maxlength="40" placeholder="Diamond Dust"></label>
       </div>
       <label class="field"><span>Email</span>
         <input id="authEmail" type="email" autocomplete="username" placeholder="vous@email.fr"></label>
@@ -45,6 +45,7 @@
     <header class="home-head">
       <div class="logo small">Biiingo<span class="logo-spark">✨</span></div>
       <div class="home-user"><span id="homePseudo"></span>
+        <button class="btn icon" onclick="tutoModal()" title="Aide / tutoriel">❓</button>
         <button class="btn icon" onclick="confirmAction('Se déconnecter ?','Déconnexion','doLogout()')" title="Déconnexion">⏻</button>
       </div>
     </header>
@@ -64,11 +65,7 @@
     <div id="salleContent"></div>
     <div id="salleBandeau" class="bandeau"></div>
     <button class="salle-exit" onclick="salleQuit()" title="Quitter l'affichage">✕</button>
-    <div id="salleLaunch" class="salle-launch">
-      <div class="logo">Biiingo<span class="logo-spark">✨</span></div>
-      <button class="btn primary big" onclick="salleLaunch()">▶ Lancer l'affichage</button>
-      <p class="muted center">Plein écran + son activé d'un seul clic</p>
-    </div>
+    <button id="salleReady" class="salle-ready hide" onclick="salleReadyClick()">🔊 Plein écran &amp; son</button>
   </div>
 
   <!-- Télécommande MC (téléphone) -->
@@ -103,5 +100,6 @@
   <script src="js/verification.js"></script>
   <script src="js/mc.js"></script>
   <script src="js/editeur.js"></script>
+  <script src="js/tuto.js"></script>
 </body>
 </html>

@@ -71,8 +71,20 @@ function verifCancel() {
   soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' } });
 }
 
+// Après un verdict : l'écran de salle garde l'animation ~7 s puis revient tout seul à la grille
+const VERDICT_DUREE_MS = 7000;
+let verdictTimer = null;
+function verifProgrammerRetour() {
+  clearTimeout(verdictTimer);
+  verdictTimer = setTimeout(() => {
+    if (S.soiree && S.soiree.verification && S.soiree.verification.verdict) verifEnd();
+  }, VERDICT_DUREE_MS);
+}
+
 function verifVerdictFaux() {
   soireeUpdate({ 'verification.verdict': 'faux' });
+  S.mcTab = 'tirage'; // le MC revient au tirage, l'écran joue l'animation puis revient seul
+  verifProgrammerRetour();
 }
 
 // GAGNÉ → champ nom optionnel (autocomplétion depuis le registre des habitués), skippable d'un tap
@@ -93,17 +105,30 @@ function verifGagneModal() {
   setTimeout(() => $('#gagnantNom').focus(), 50);
 }
 
+// Objectif suivant après un gagné : quine → double quine → carton plein
+const OBJECTIF_SUIVANT = { quine: 'double', double: 'carton', carton: 'carton' };
+
 function verifConfirmGagne(nomBrut) {
   closeModal();
   const nom = String(nomBrut || '').trim();
   const s = S.soiree;
   const entry = { nom, objectif: s.objectif, manche: s.manche, ts: Date.now() };
-  soireeUpdate({
+  const patch = {
     'verification.verdict': 'gagne',
     'verification.gagnantNom': nom,
     hallOfFame: FV.arrayUnion(entry)
-  });
+  };
+  const suivant = OBJECTIF_SUIVANT[s.objectif] || 'quine';
+  if (suivant !== s.objectif) {
+    patch.objectif = suivant;
+    toast('Objectif suivant : ' + OBJECTIFS[suivant].label + ' 🎯');
+  } else {
+    toast('Carton plein remporté — « Manche suiv. » quand vous voulez ! 🏆');
+  }
+  soireeUpdate(patch);
   if (nom) saveWinnerToRegistre(nom);
+  S.mcTab = 'tirage'; // retour direct au tirage côté animateur (demande utilisateur)
+  verifProgrammerRetour();
 }
 
 function verifEnd() {

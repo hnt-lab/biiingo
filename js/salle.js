@@ -3,13 +3,25 @@
 let salleEtatAffiche = null; // dernier état rendu (pour reconstruire uniquement quand ça change)
 let salleQrUrl = null;
 
-// Clic « Lancer l'affichage » : plein écran + déblocage du son + écran toujours allumé
-async function salleLaunch() {
-  $('#salleLaunch').classList.remove('show');
+// Préparation de l'affichage. gesture = vrai si on arrive via un clic (autorise plein écran + son direct)
+function salleOpenInit(gesture) {
+  salleEtatAffiche = null;
+  salleQrUrl = null;
+  if (gesture) salleReadyClick();
+  salleUpdateReadyBtn();
+}
+
+// Bouton flottant « 🔊 Plein écran & son » : nécessaire après un F5 (le navigateur exige un clic)
+function salleReadyClick() {
   Sons.unlock();
-  try { await document.documentElement.requestFullscreen(); } catch (e) {}
-  try { if (navigator.wakeLock) await navigator.wakeLock.request('screen'); } catch (e) {}
-  if (S.soiree) { salleEtatAffiche = null; renderSalle(S.soiree, null); }
+  try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
+  try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+  salleUpdateReadyBtn();
+}
+
+function salleUpdateReadyBtn() {
+  const b = $('#salleReady');
+  if (b) b.classList.toggle('hide', Sons.unlocked);
 }
 
 function salleQuit() {
@@ -17,27 +29,20 @@ function salleQuit() {
 }
 
 function renderSalle(s, prev) {
-  if ($('#salleLaunch').classList.contains('show')) return; // pas encore lancé
-
   // ----- Sons & détection des nouveautés -----
   if (prev) {
-    // Nouveau(x) numéro(s) tiré(s)
     if (s.etat === 'tirage' && s.tires.length > (prev.tires ? prev.tires.length : 0)) Sons.play('tirage');
-    // Entrée en entracte
     if (s.etat === 'entracte' && prev.etat !== 'entracte') Sons.play('entracte');
-    // Vérification : numéros cochés par le MC
     const pc = (prev.verification && prev.verification.coches) || [];
     const nc = (s.verification && s.verification.coches) || [];
     if (nc.length > pc.length) {
       const nouveau = nc[nc.length - 1];
       Sons.play(s.tires.includes(nouveau) ? 'valid' : 'rate');
     }
-    // Suspense (boucle)
     const pSusp = prev.etat === 'verification' && prev.verification && prev.verification.suspense && !prev.verification.verdict;
     const nSusp = s.etat === 'verification' && s.verification && s.verification.suspense && !s.verification.verdict;
     if (nSusp && !pSusp) Sons.startLoop('suspense');
     if (!nSusp && pSusp) Sons.stopLoop('suspense');
-    // Verdict
     const pv = (prev.verification && prev.verification.verdict) || '';
     const nv = (s.verification && s.verification.verdict) || '';
     if (nv && nv !== pv) {
@@ -58,6 +63,7 @@ function renderSalle(s, prev) {
   else if (s.etat === 'fin') { c.innerHTML = salleFinHtml(s); salleMakeQr(s); }
 
   renderBandeau(s);
+  salleUpdateReadyBtn();
 }
 
 // ---------- État : ACCUEIL ----------
@@ -76,28 +82,35 @@ function salleAccueilHtml(s) {
 function renderSalleTirage(s, prev, rebuilt) {
   const c = $('#salleContent');
   if (rebuilt) {
-    const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
     let cells = '';
     for (let n = 1; n <= NB_NUMEROS; n++) cells += `<div class="cell" id="cell${n}">${n}</div>`;
     c.innerHTML = `
     <div class="salle-tirage">
       <div class="salle-haut">
         <div class="salle-manche" id="salleManche"></div>
+        <div class="salle-compteur-chip" id="salleCompteur"></div>
       </div>
       <div class="salle-corps">
         <div class="salle-grille">${cells}</div>
         <div class="salle-side">
-          <div class="dernier-label">Dernier numéro</div>
-          <div class="dernier-num" id="dernierNum">—</div>
-          <div class="histo-label">Précédents</div>
-          <div class="histo" id="histoNums"></div>
-          <div class="compteur" id="salleCompteur"></div>
+          <div class="side-deco" id="decoHaut"></div>
+          <div class="side-centre">
+            <div class="dernier-label">Dernier numéro</div>
+            <div class="dernier-num" id="dernierNum">—</div>
+          </div>
+          <div class="side-deco" id="decoBas"></div>
         </div>
       </div>
     </div>`;
   }
   const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
   $('#salleManche').innerHTML = `Manche ${s.manche} &nbsp;·&nbsp; <b>${obj.label}</b> <span class="obj-detail">(${obj.detail})</span>`;
+  $('#salleCompteur').textContent = `${s.tires.length} / ${NB_NUMEROS}`;
+
+  // Décoration personnalisable (haut / bas de la colonne de droite)
+  const deco = s.deco || {};
+  salleSetDeco('decoHaut', deco.haut);
+  salleSetDeco('decoBas', deco.bas);
 
   const prevTires = (prev && prev.tires) || [];
   for (let n = 1; n <= NB_NUMEROS; n++) {
@@ -115,9 +128,15 @@ function renderSalleTirage(s, prev, rebuilt) {
   if (last != null && (!prev || (prev.tires || []).length !== s.tires.length || rebuilt)) {
     dn.classList.remove('bump'); void dn.offsetWidth; dn.classList.add('bump');
   }
-  const histo = s.tires.slice(0, -1).slice(-5).reverse();
-  $('#histoNums').innerHTML = histo.map(n => `<span class="histo-num">${n}</span>`).join('');
-  $('#salleCompteur').textContent = `${s.tires.length} / ${NB_NUMEROS}`;
+}
+
+function salleSetDeco(id, photo) {
+  const el = $('#' + id);
+  if (!el) return;
+  const cur = el.dataset.photo || '';
+  if (cur === (photo || '')) return;
+  el.dataset.photo = photo || '';
+  el.innerHTML = photo ? `<img src="${escAttr(photo)}" alt="">` : '';
 }
 
 // ---------- État : VÉRIFICATION ----------
@@ -201,6 +220,7 @@ function renderBandeau(s) {
   const visible = !!b.texte && (s.etat === 'entracte' || (s.etat === 'tirage' && b.actif));
   const el = $('#salleBandeau');
   el.classList.toggle('show', visible);
+  $('#salleScreen').classList.toggle('bandeau-on', visible); // réserve la place (la grille n'est plus recouverte)
   if (visible) {
     const txt = esc(b.texte);
     if (el.dataset.txt !== b.texte) {

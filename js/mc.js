@@ -73,7 +73,12 @@ function mcTapNum(n) {
       'Annuler le ' + n, `mcRemoveNum(${n})`);
   } else {
     const patch = { tires: FV.arrayUnion(n) };
-    if (s.etat === 'accueil') patch.etat = 'tirage'; // premier numéro = la partie démarre
+    if (s.etat !== 'tirage') {
+      patch.etat = 'tirage'; // taper un numéro ramène toujours la salle sur la grille
+      if (s.verification && s.verification.active) {
+        patch.verification = { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' };
+      }
+    }
     soireeUpdate(patch);
   }
 }
@@ -156,7 +161,7 @@ function mcEntracteLibreModal() {
   modal(`
     <h3>🎤 Entracte libre</h3>
     <label class="field"><span>Nom de l'artiste / du moment</span>
-      <input id="entrNom" type="text" maxlength="60" placeholder="Lady Paillette"></label>
+      <input id="entrNom" type="text" maxlength="60" placeholder="Diamond Dust"></label>
     <label class="field"><span>Message (optionnel)</span>
       <input id="entrMsg" type="text" maxlength="120" placeholder="Applaudissez bien fort !"></label>
     <div class="modal-btns">
