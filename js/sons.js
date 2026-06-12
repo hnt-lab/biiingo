@@ -68,15 +68,19 @@ const Sons = {
     }
   },
 
+  onBlocked: null, // appelé quand un son devait jouer mais que le clic de déblocage manque
+
   play(name) {
-    if (!this.enabled || !this.unlocked) return;
+    if (!this.enabled) return;
+    if (!this.unlocked) { if (this.onBlocked) this.onBlocked(); return; }
     const a = this._pick(name);
     if (!a) return;
     try { a.currentTime = 0; a.play().catch(() => {}); } catch (e) {}
   },
 
   startLoop(name) {
-    if (!this.enabled || !this.unlocked) return;
+    if (!this.enabled) return;
+    if (!this.unlocked) { if (this.onBlocked) this.onBlocked(); return; }
     const a = this._pick(name);
     if (!a || !a.paused) return;
     this._loopEnCours = a;

@@ -36,3 +36,22 @@ const SONS_LISTE = [
 // Fond d'écran d'entracte (compressé plus grand qu'un portrait)
 const FOND_MAX_DIM = 1280;
 const FOND_QUALITY = 0.65;
+
+// Animations de verdict (styles + images PNG à transparence)
+const ANIM_STYLES = {
+  gagne: [
+    { id: 'pluie',     label: '✨ Pluie de gloire' },
+    { id: 'feu',       label: '🎆 Feu d\'artifice' },
+    { id: 'cabaret',   label: '🍾 Cabaret' },
+    { id: 'aleatoire', label: '🎲 Surprise' }
+  ],
+  faux: [
+    { id: 'douche',    label: '🌧 Douche froide' },
+    { id: 'tampon',    label: '📛 Tampon' },
+    { id: 'pschitt',   label: '🎈 Pschitt' },
+    { id: 'aleatoire', label: '🎲 Surprise' }
+  ]
+};
+const ANIM_PNG_MAX_DIM = 320;      // particules (transparence conservée)
+const ANIM_VEDETTE_MAX_DIM = 512;  // grande image centrale
+const ANIM_MAX_PARTS = 3;          // nombre max d'images particules par verdict

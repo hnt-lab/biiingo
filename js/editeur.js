@@ -67,6 +67,9 @@ function mcEditionHtml(s) {
     <p class="muted small">Les sons personnalisés sont gardés avec le compte du créateur de la soirée — valables pour toutes ses soirées.</p>
   </div>
 
+  ${edAnimBlocHtml(s, 'gagne', '🎉 Animation GAGNÉ')}
+  ${edAnimBlocHtml(s, 'faux', '💋 Animation FAUX BINGO')}
+
   <div class="soiree-bloc">
     <h3 class="mc-h3">🏠 Écran d'accueil</h3>
     <label class="field"><span>Message d'accueil</span>
@@ -111,6 +114,114 @@ function mcEditionHtml(s) {
     <button class="btn block primary" onclick="edSavePresetModal()">💾 Sauver comme préset</button>
     <div id="edPresetList"></div>
   </div>`;
+}
+
+// ---------- Animations de verdict ----------
+function edAnimBlocHtml(s, type, titre) {
+  const conf = (s.anims && s.anims[type]) || {};
+  const styleActif = conf.style || (type === 'gagne' ? 'pluie' : 'douche');
+  const parts = conf.parts || [];
+  return `
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">${titre}</h3>
+    <div class="anim-styles">
+      ${ANIM_STYLES[type].map(st =>
+        `<button class="btn small ${styleActif === st.id ? 'primary' : ''}"
+          onclick="edAnimStyle('${type}','${st.id}')">${st.label}</button>`).join('')}
+    </div>
+    <p class="muted small">Images PNG à fond transparent (max ${ANIM_MAX_PARTS}) — elles remplacent les emojis dans l'animation :</p>
+    <div class="photo-line">
+      ${parts.map((p, i) => `
+        <span class="anim-part-thumb"><img src="${escAttr(p)}" alt="">
+          <button class="anim-part-del" onclick="edAnimDelPart('${type}',${i})">✕</button></span>`).join('')}
+      ${parts.length < ANIM_MAX_PARTS ? `
+        <input type="file" id="edAnimPart_${type}" accept="image/png,image/webp" style="display:none" onchange="edAnimAddPart(this,'${type}')">
+        <button class="btn small" onclick="$('#edAnimPart_${type}').click()">➕ PNG</button>` : ''}
+    </div>
+    <p class="muted small">Image « vedette » (optionnelle — grande entrée au centre) :</p>
+    <div class="photo-line">
+      ${conf.vedette ? `<img src="${escAttr(conf.vedette)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🌟</div>'}
+      <input type="file" id="edAnimVed_${type}" accept="image/png,image/webp" style="display:none" onchange="edAnimVedette(this,'${type}')">
+      <button class="btn small" onclick="$('#edAnimVed_${type}').click()">📷</button>
+      ${conf.vedette ? `<button class="btn icon small" onclick="edAnimDelVedette('${type}')">🗑</button>` : ''}
+    </div>
+  </div>`;
+}
+
+function edAnimRefresh() {
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+function edAnimStyle(type, style) {
+  const patch = {};
+  patch['anims.' + type + '.style'] = style;
+  soireeUpdate(patch);
+  edAnimRefresh();
+}
+
+async function edAnimAddPart(input, type) {
+  const data = await compressImagePng(input.files[0], ANIM_PNG_MAX_DIM);
+  if (!data) return;
+  const conf = (S.soiree.anims && S.soiree.anims[type]) || {};
+  const parts = (conf.parts || []).slice();
+  if (parts.length >= ANIM_MAX_PARTS) return;
+  parts.push(data);
+  const patch = {};
+  patch['anims.' + type + '.parts'] = parts;
+  soireeUpdate(patch);
+  toast('Image ajoutée à l\'animation 🎉');
+  edAnimRefresh();
+}
+
+function edAnimDelPart(type, i) {
+  const conf = (S.soiree.anims && S.soiree.anims[type]) || {};
+  const parts = (conf.parts || []).slice();
+  parts.splice(i, 1);
+  const patch = {};
+  patch['anims.' + type + '.parts'] = parts;
+  soireeUpdate(patch);
+  edAnimRefresh();
+}
+
+async function edAnimVedette(input, type) {
+  const data = await compressImagePng(input.files[0], ANIM_VEDETTE_MAX_DIM);
+  if (!data) return;
+  const patch = {};
+  patch['anims.' + type + '.vedette'] = data;
+  soireeUpdate(patch);
+  toast('Image vedette enregistrée 🌟');
+  edAnimRefresh();
+}
+
+function edAnimDelVedette(type) {
+  const patch = {};
+  patch['anims.' + type + '.vedette'] = '';
+  soireeUpdate(patch);
+  edAnimRefresh();
+}
+
+// Compression PNG (conserve la TRANSPARENCE — pas de conversion JPEG)
+function compressImagePng(file, maxDim) {
+  return new Promise(resolve => {
+    if (!file) { resolve(null); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let w = img.width, h = img.height;
+      const ratio = Math.min(1, maxDim / Math.max(w, h));
+      w = Math.round(w * ratio); h = Math.round(h * ratio);
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      const data = cv.toDataURL('image/png');
+      if (data.length > 420000) { toast('Cette image reste trop lourde même réduite — choisis un PNG plus simple.'); resolve(null); return; }
+      resolve(data);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
+    img.src = url;
+  });
 }
 
 // ---------- Bandeau (éditable en cours de route) ----------
@@ -323,6 +434,7 @@ async function edSavePreset() {
       bandeau: (s.bandeau && s.bandeau.texte) || '',
       deco: s.deco || { haut: '', bas: '' },
       entracteFond: s.entracteFond || '',
+      anims: s.anims || {},
       updatedAt: FV.serverTimestamp()
     });
     toast('Préset enregistré 💾');
