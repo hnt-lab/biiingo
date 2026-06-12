@@ -34,9 +34,11 @@
 - [ ] Test runtime utilisateur (PC + téléphone) — EN ATTENTE (feuille de route de test)
 
 ### Reste à faire (bloquant avant test)
-- [ ] Setup utilisateur : projet Firebase + config collée dans js/firebase.js (guide _setup/)
-- [ ] Dépôt GitHub créé + push + GitHub Pages activé
-- [ ] Proposition de sons libres de droits (ou fichiers fournis par l'utilisateur)
+- [x] Setup utilisateur : projet Firebase (Auth + Firestore + règles publiées) + config dans js/firebase.js — fait 2026-06-12
+- [x] Dépôt GitHub + push + GitHub Pages + domaine autorisé — fait 2026-06-12 → **https://mickaelquintin13-lab.github.io/biiingo/**
+- [x] deploy.bat créé (envoi auto)
+- [ ] Sons : proposition Pixabay transmise à l'utilisateur (il choisit/télécharge, ou fournit les siens) — fichiers mp3 toujours absents
+- [ ] **TEST UTILISATEUR EN COURS** → feuille : _audit/FEUILLE_DE_TEST_v0.1.0.md
 
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
