@@ -30,7 +30,10 @@ const SONS_LISTE = [
   { name: 'gagne',     label: 'GAGNÉ',                    info: '' },
   { name: 'fauxbingo', label: 'Faux bingo',               info: '' },
   { name: 'entracte',  label: 'Entracte',                 info: 'au lancement du spectacle' },
-  { name: 'reprise',   label: 'Reprise de partie',        info: 'après l\'entracte (sinon : son d\'entracte)' }
+  { name: 'reprise',   label: 'Reprise de partie',        info: 'après l\'entracte (sinon : son d\'entracte)' },
+  { name: 'attente',   label: 'Musique d\'attente',       info: 'en boucle sur l\'écran d\'accueil' },
+  { name: 'debut',     label: 'Début de soirée',          info: 'accueil → manche 1' },
+  { name: 'fin',       label: 'Fin de soirée',            info: 'au passage à l\'écran de fin' }
 ];
 
 // Fond d'écran d'entracte (compressé plus grand qu'un portrait)

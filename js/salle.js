@@ -16,6 +16,8 @@ function salleReadyClick() {
   Sons.unlock();
   try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
   try { if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {}); } catch (e) {}
+  // Si l'accueil est affiché, la musique d'attente démarre dès que le son est débloqué
+  setTimeout(() => { if (S.soiree && S.soiree.etat === 'accueil') Sons.startLoop('attente'); }, 250);
   salleUpdateReadyBtn();
 }
 
@@ -42,11 +44,19 @@ function salleQuit() {
 
 function renderSalle(s, prev) {
   // ----- Sons & détection des nouveautés -----
+  if (!prev && s.etat === 'accueil') Sons.startLoop('attente'); // arrivée directe sur l'accueil
   if (prev) {
     if (s.etat === 'tirage' && s.tires.length > (prev.tires ? prev.tires.length : 0)) Sons.play('tirage');
     if (s.etat === 'entracte' && prev.etat !== 'entracte') Sons.play('entracte');
     // Reprise de la partie après l'entracte (son dédié, sinon le son d'entracte)
     if (s.etat === 'tirage' && prev.etat === 'entracte') Sons.play(Sons.has('reprise') ? 'reprise' : 'entracte');
+    // Début de soirée : on quitte l'accueil pour la 1re manche
+    if (s.etat === 'tirage' && prev.etat === 'accueil' && s.manche === 1 && s.tires.length <= 1) Sons.play('debut');
+    // Fin de soirée
+    if (s.etat === 'fin' && prev.etat !== 'fin') Sons.play('fin');
+    // Musique d'attente : boucle tant que l'écran d'accueil est affiché
+    if (s.etat === 'accueil' && prev.etat !== 'accueil') Sons.startLoop('attente');
+    if (s.etat !== 'accueil' && prev.etat === 'accueil') Sons.stopLoop('attente');
     const pc = (prev.verification && prev.verification.coches) || [];
     const nc = (s.verification && s.verification.coches) || [];
     if (nc.length > pc.length) {

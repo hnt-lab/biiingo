@@ -77,6 +77,13 @@
 - Bug signalé : après Échap (sortie du plein écran), aucun moyen d'y revenir (le bouton rose ne réapparaissait pas — il est lié au déblocage du son, qui ne se refait pas).
 - Fix : **bouton ⛶ dédié au survol** (à côté du ✕, opacité faible → visible au hover) qui bascule le plein écran à tout moment. Le bouton rose ne gère plus que le cas « son pas encore débloqué » (après F5).
 
+## 2026-06-12 — v0.6.0 : sons de début/fin de soirée + musique d'attente
+- **`debut.mp3`** : joué à la transition accueil → tirage (manche 1, grille neuve). Fichier déjà déposé par l'utilisateur.
+- **`fin.mp3`** : joué au passage à l'écran de fin.
+- **`attente.mp3`** : musique d'ambiance **en boucle** tant que l'écran d'accueil est affiché (stoppée en quittant l'accueil ; démarre aussi après le déblocage du son post-F5). Boucles factorisées (SOUND_LOOPS).
+- Les 3 ajoutés à la liste des sons remplaçables in-app + LISEZMOI.md refait (13 emplacements).
+- ⏳ L'utilisateur cherche les fichiers attente/fin.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
