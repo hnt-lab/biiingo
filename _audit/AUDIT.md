@@ -73,6 +73,10 @@
 - **Bandeau** : contour doré (liserés haut/bas 3px + halo léger).
 - `node --check` : OK.
 
+## 2026-06-12 — v0.5.1 : plein écran récupérable
+- Bug signalé : après Échap (sortie du plein écran), aucun moyen d'y revenir (le bouton rose ne réapparaissait pas — il est lié au déblocage du son, qui ne se refait pas).
+- Fix : **bouton ⛶ dédié au survol** (à côté du ✕, opacité faible → visible au hover) qui bascule le plein écran à tout moment. Le bouton rose ne gère plus que le cas « son pas encore débloqué » (après F5).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
