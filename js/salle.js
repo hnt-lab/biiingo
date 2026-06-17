@@ -58,6 +58,7 @@ function renderSalle(s, prev) {
   const son = s.son || {};
   Sons.enabled = !son.mute;
   Sons.setVolume(typeof son.volume === 'number' ? son.volume : 0.85);
+  Sons.setDisabled(son.off);
   if (s.etat !== 'tirage') $('#salleScreen').classList.remove('mode-lose');
 
   // ----- Sons & détection des nouveautés -----
@@ -180,17 +181,13 @@ function renderSalleTirage(s, prev, rebuilt) {
   salleSetDeco('decoBas', deco.bas);
 
   const prevTires = (prev && prev.tires) || [];
-  let nouveauNum = null;
   for (let n = 1; n <= NB_NUMEROS; n++) {
     const cell = $('#cell' + n);
     if (!cell) continue;
     const lit = s.tires.includes(n);
     const wasLit = !rebuilt && prevTires.includes(n);
     cell.classList.toggle('lit', lit);
-    if (lit && !wasLit) {
-      cell.classList.remove('pop'); void cell.offsetWidth; cell.classList.add('pop');
-      if (!rebuilt) nouveauNum = n;
-    }
+    if (lit && !wasLit) { cell.classList.remove('pop'); void cell.offsetWidth; cell.classList.add('pop'); }
   }
 
   const last = s.tires.length ? s.tires[s.tires.length - 1] : null;
@@ -203,22 +200,6 @@ function renderSalleTirage(s, prev, rebuilt) {
   // 5 derniers numéros tirés (hors le tout dernier, déjà affiché en grand)
   const histo = s.tires.slice(0, -1).slice(-5).reverse();
   $('#histoNums').innerHTML = histo.map(n => `<span class="histo-num">${n}</span>`).join('');
-
-  // Mode lose : coup de couperet sur le numéro fatal qui vient de sortir
-  if (lose && nouveauNum != null) salleFlashElim(nouveauNum);
-}
-
-// Flash d'élimination plein écran (mode « partie de la lose »)
-function salleFlashElim(n) {
-  const host = document.querySelector('.salle-tirage');
-  if (!host) return;
-  const old = host.querySelector('.elim-flash');
-  if (old) old.remove();
-  const f = document.createElement('div');
-  f.className = 'elim-flash';
-  f.innerHTML = `<div class="elim-num">${n}</div><div class="elim-txt">ÉLIMINÉ·E !</div>`;
-  host.appendChild(f);
-  setTimeout(() => { if (f.isConnected) f.remove(); }, 2200);
 }
 
 function salleSetDeco(id, photo) {
@@ -285,8 +266,11 @@ function salleFinHtml(s) {
     </div>` : '';
   const liens = (e.liens || []).map(l =>
     `<div class="fin-lien">${esc(l.label)}${l.label && l.url ? ' · ' : ''}${esc(l.url)}</div>`).join('');
+  const fond = e.fond
+    ? ` style="background-image:linear-gradient(rgba(26,20,38,.8),rgba(26,20,38,.8)),url(${e.fond});background-size:cover;background-position:center"`
+    : '';
   return `
-  <div class="salle-center salle-fin">
+  <div class="salle-center salle-fin"${fond}>
     <h1 class="salle-titre-event">${e.texte ? esc(e.texte) : 'Merci à toutes et tous ! ❤️'}</h1>
     ${hofHtml}
     <div class="fin-bas">
