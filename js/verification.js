@@ -4,6 +4,23 @@ function mcVerifHtml(s) {
   const v = s.verification || {};
   const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
 
+  // Mode « partie de la lose » : pas de carton à vérifier (mort subite) → on déclare le·a survivant·e
+  if (s.objectif === 'lose' && !v.verdict) {
+    const noms = Object.values(S.registre || {})
+      .sort((a, b) => (b.victoires || 0) - (a.victoires || 0)).slice(0, 50);
+    const datalist = noms.map(n => `<option value="${escAttr(n.nom)}"></option>`).join('');
+    return `
+    <div class="verif-intro">
+      <h3 class="mc-h3">💀 Mort subite</h3>
+      <p class="muted">Pas de carton à vérifier : dès qu'un numéro sort, ceux qui l'ont sont éliminés.
+      Quand il ne reste qu'une personne, déclare-la gagnante !</p>
+      <label class="field"><span>Nom du·de la survivant·e (pour le Hall of Fame — optionnel)</span>
+        <input id="loseNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
+        <datalist id="nomsConnus">${datalist}</datalist></label>
+      <button class="btn block primary big" onclick="verifLoseWin()">🏆 Déclarer le·a survivant·e</button>
+    </div>`;
+  }
+
   // Pas de vérification en cours → écran de lancement
   if (!v.active) {
     const noms = Object.values(S.registre || {})
@@ -125,4 +142,20 @@ function verifConfirmGagne() {
 
 function verifEnd() {
   soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' } });
+}
+
+// Mode lose : déclaration directe du·de la survivant·e (déclenche l'animation GAGNÉ)
+function verifLoseWin() {
+  const s = S.soiree;
+  const nom = (($('#loseNom') && $('#loseNom').value) || '').trim();
+  const entry = { nom, objectif: 'lose', manche: s.manche, ts: Date.now() };
+  soireeUpdate({
+    etat: 'verification',
+    verification: { active: true, suspense: false, coches: [], verdict: 'gagne', gagnantNom: nom },
+    hallOfFame: FV.arrayUnion(entry)
+  });
+  if (nom) saveWinnerToRegistre(nom);
+  toast('Survivant·e déclaré·e ! 💀🏆');
+  S.mcTab = 'tirage';
+  verifProgrammerRetour();
 }

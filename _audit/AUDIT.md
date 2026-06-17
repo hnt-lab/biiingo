@@ -115,6 +115,12 @@
 | Réorg Soirée | « Écran de salle » en 1er, panneau mis en avant + gros boutons nav ; puis Son ; Code de la soirée en version compacte plus bas |
 - `node --check` : 13/13 OK. Aucune référence orpheline (grep).
 
+## 2026-06-12 — v0.9.1 : corrections du lot n°3 (3 malentendus)
+- **Mort subite DA — sens corrigé** : j'avais inversé. L'utilisateur AIMAIT les cases rouges + animation `cellElim` (v0.8.0) ; je les avais retirées en v0.9.0. → RESTAURÉES (cases sorties rouges + couperet), sur fond + grille habituels. Le numéro fatal reste rouge.
+- **Image d'accueil trop petite** : cause = photo compressée à 560px (max-* ne fait que rétrécir, pas agrandir → affichée à sa taille native). Fix : accueil compressé en HD (FOND_MAX_DIM 1280) + max-height 78vh/86vw. ⚠️ les photos d'accueil déjà uploadées (560px) doivent être re-uploadées.
+- **Pas de vérification en mode lose** : la mort subite n'a pas de carton → onglet Vérif remplacé par « 🏆 Déclarer le·a survivant·e » (nom + bouton, déclenche l'animation GAGNÉ + Hall of Fame). verifLoseWin().
+- `node --check` : 13/13 OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
