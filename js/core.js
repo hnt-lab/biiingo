@@ -217,6 +217,33 @@ function openSoiree(id, mode, gesture) {
     if (S.mode === 'salle') renderSalle(S.soiree, S.prev);
     else renderMC(S.soiree, S.prev);
   }, () => { /* erreur réseau passagère : Firestore réessaie tout seul */ });
+
+  // Médias (grandes images) : stockés à part, hors de la fiche soirée (limite 1 Mo) — un doc par image
+  S.medias = {};
+  if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
+  S.unsubMedias = db.collection('medias').where('soireeId', '==', id).onSnapshot(snap => {
+    const m = {};
+    snap.forEach(d => { const x = d.data(); if (x.key) m[x.key] = x.data; });
+    S.medias = m;
+    if (!S.soiree) return;
+    if (S.mode === 'salle') { salleEtatAffiche = null; renderSalle(S.soiree, null); }
+    else { editionRendered = false; renderMC(S.soiree, null); }
+  }, () => {});
+}
+
+// Image stockée hors fiche soirée — repli sur l'ancien champ inline (compat soirées existantes)
+function mediaGet(key, legacy) {
+  return (S.medias && S.medias[key]) || legacy || '';
+}
+function mediaSet(key, data) {
+  if (!S.soireeId) return Promise.resolve();
+  return db.collection('medias').doc(S.soireeId + '__' + key)
+    .set({ soireeId: S.soireeId, key, data, ts: FV.serverTimestamp() })
+    .catch(() => toast('Envoi de l\'image impossible — vérifie ta connexion.'));
+}
+function mediaDel(key) {
+  if (!S.soireeId) return Promise.resolve();
+  return db.collection('medias').doc(S.soireeId + '__' + key).delete().catch(() => {});
 }
 
 // Sons personnalisés du compte créateur de la soirée (remplacent les sons de base)
@@ -238,6 +265,8 @@ async function loadCustomSounds() {
 
 function quitSoiree() {
   if (S.unsub) { S.unsub(); S.unsub = null; }
+  if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
+  S.medias = {};
   Sons.stopAll();
   Sons.clearCustom();
   S.sonsCustom = {};

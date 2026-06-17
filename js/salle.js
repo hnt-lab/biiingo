@@ -130,9 +130,10 @@ function renderSalle(s, prev) {
 // ---------- État : ACCUEIL ----------
 function salleAccueilHtml(s) {
   const e = (s.ecrans && s.ecrans.accueil) || {};
+  const photo = mediaGet('accueil', e.photo);
   return `
   <div class="salle-center salle-accueil">
-    ${e.photo ? `<img class="salle-photo" src="${escAttr(e.photo)}" alt="">` : ''}
+    ${photo ? `<img class="salle-photo" src="${escAttr(photo)}" alt="">` : ''}
     <h1 class="salle-titre-event">${esc(s.titre)}</h1>
     <p class="salle-soustitre">${e.texte ? esc(e.texte) : 'Ça commence bientôt… ✨'}</p>
     <div class="salle-dots"><span></span><span></span><span></span></div>
@@ -237,8 +238,9 @@ function salleVerifHtml(s) {
 // ---------- État : ENTRACTE ----------
 function salleEntracteHtml(s) {
   const e = s.entracte || {};
-  const fond = s.entracteFond
-    ? ` style="background-image:linear-gradient(rgba(26,20,38,.78),rgba(26,20,38,.78)),url(${s.entracteFond});background-size:cover;background-position:center"`
+  const fondData = mediaGet('entracteFond', s.entracteFond);
+  const fond = fondData
+    ? ` style="background-image:linear-gradient(rgba(26,20,38,.78),rgba(26,20,38,.78)),url(${fondData});background-size:cover;background-position:center"`
     : '';
   return `
   <div class="salle-center salle-entracte"${fond}>
@@ -266,8 +268,9 @@ function salleFinHtml(s) {
     </div>` : '';
   const liens = (e.liens || []).map(l =>
     `<div class="fin-lien">${esc(l.label)}${l.label && l.url ? ' · ' : ''}${esc(l.url)}</div>`).join('');
-  const fond = e.fond
-    ? ` style="background-image:linear-gradient(rgba(26,20,38,.8),rgba(26,20,38,.8)),url(${e.fond});background-size:cover;background-position:center"`
+  const fondData = mediaGet('finFond', e.fond);
+  const fond = fondData
+    ? ` style="background-image:linear-gradient(rgba(26,20,38,.8),rgba(26,20,38,.8)),url(${fondData});background-size:cover;background-position:center"`
     : '';
   return `
   <div class="salle-center salle-fin"${fond}>
@@ -304,7 +307,9 @@ function renderBandeau(s) {
     const txt = esc(b.texte);
     if (el.dataset.txt !== b.texte) {
       el.dataset.txt = b.texte;
-      el.innerHTML = `<div class="bandeau-piste"><span>${txt}</span><span>${txt}</span></div>`;
+      // Séparateur ✦ entre deux passages du message
+      const seg = `${txt}<span class="bandeau-sep">✦</span>`;
+      el.innerHTML = `<div class="bandeau-piste"><span>${seg}</span><span>${seg}</span></div>`;
     }
   } else {
     el.dataset.txt = '';

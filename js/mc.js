@@ -247,9 +247,14 @@ function mcRemoveHof(index) {
 }
 
 async function mcSupprimer() {
+  const id = S.soireeId;
   try {
     if (S.unsub) { S.unsub(); S.unsub = null; }
-    await db.collection('soirees').doc(S.soireeId).delete();
+    if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
+    // Supprime aussi les images associées (espace médias)
+    const snap = await db.collection('medias').where('soireeId', '==', id).get();
+    await Promise.all(snap.docs.map(d => d.ref.delete().catch(() => {})));
+    await db.collection('soirees').doc(id).delete();
   } catch (e) {}
   quitSoiree();
 }
