@@ -166,8 +166,8 @@ a { color: var(--rose); }
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .salle-soustitre { font-size: clamp(1.2em, 3vw, 2em); color: var(--texte); }
-.salle-photo { max-height: 32vh; max-width: 60vw; border-radius: 18px; border: 3px solid var(--or); }
-.salle-photo.grande { max-height: 42vh; }
+.salle-photo { max-height: 46vh; max-width: 72vw; border-radius: 18px; border: 3px solid var(--or); }
+.salle-photo.grande { max-height: 58vh; max-width: 80vw; }
 .salle-dots { display: flex; gap: 14px; }
 .salle-dots span {
   width: 14px; height: 14px; border-radius: 50%; background: var(--rose);
@@ -239,6 +239,57 @@ a { color: var(--rose); }
   70% { transform: scale(.96); }
   100% { transform: scale(1); }
 }
+/* 5 derniers numéros (sous le dernier, dans la colonne de droite) */
+.histo { display: flex; gap: .6vw; flex-wrap: wrap; justify-content: center; margin-top: .4vh; }
+.histo-num {
+  background: var(--bg2); border: 1px solid var(--bord); border-radius: 10px;
+  padding: .5vh .9vw; font-weight: 700; font-size: clamp(1em, 3vh, 2em); color: var(--texte);
+}
+
+/* ===== Mode « Partie de la lose » (battle royale) — thème danger ===== */
+#salleScreen.mode-lose .screen.salle,
+#salleScreen.mode-lose { }
+#salleScreen.mode-lose .salle-tirage {
+  background: radial-gradient(120% 90% at 50% 0%, #3a0f17 0%, #1a0a0e 75%);
+}
+#salleScreen.mode-lose .salle-manche b { color: #ff5f6b; }
+#salleScreen.mode-lose .salle-grille .cell.lit {
+  background: linear-gradient(135deg, #ff5f6b, #8c1020);
+  box-shadow: 0 0 14px #ff5f6b66;
+}
+#salleScreen.mode-lose .salle-grille .cell.lit.pop { animation: cellElim .6s ease; }
+@keyframes cellElim {
+  0% { transform: scale(1.5) rotate(0); filter: brightness(2.2); }
+  40% { transform: scale(.82) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); filter: brightness(1); }
+}
+#salleScreen.mode-lose .dernier-label { color: #ff8088; }
+#salleScreen.mode-lose .dernier-num {
+  background: linear-gradient(120deg, #ff5f6b, #ffb199);
+  -webkit-background-clip: text; background-clip: text;
+}
+/* Couperet plein écran : le numéro fatal claque au centre */
+.elim-flash {
+  position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: radial-gradient(circle at center, #8c102055, transparent 60%);
+  animation: elimFade 2.2s ease forwards;
+}
+.elim-num {
+  font-size: clamp(6em, 34vh, 22em); font-weight: 900; line-height: .9; color: #fff;
+  text-shadow: 0 0 30px #ff5f6b, 0 0 8px #fff;
+  animation: elimClaque .5s cubic-bezier(.2, 1.7, .3, 1);
+}
+.elim-txt {
+  font-size: clamp(1.6em, 7vh, 5em); font-weight: 900; letter-spacing: .15em; color: #ff5f6b;
+  text-shadow: 0 2px 10px #000; animation: elimClaque .5s .08s both cubic-bezier(.2, 1.7, .3, 1);
+}
+@keyframes elimClaque {
+  0% { transform: scale(2.6) rotate(-10deg); opacity: 0; }
+  55% { transform: scale(.9) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-3deg); opacity: 1; }
+}
+@keyframes elimFade { 0%, 70% { opacity: 1; } 100% { opacity: 0; } }
 
 /* ----- Vérification ----- */
 .salle-verif.suspense { animation: suspensePulse 1.6s ease-in-out infinite; }

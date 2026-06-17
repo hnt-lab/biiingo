@@ -195,6 +195,15 @@ function mcSoireeHtml(s) {
     </div>
   </div>
   <div class="soiree-bloc">
+    <h3 class="mc-h3">🔊 Son de la salle</h3>
+    <button class="btn block ${(s.son && s.son.mute) ? 'warn' : 'primary'}" onclick="mcToggleMute()">
+      ${(s.son && s.son.mute) ? '🔇 Son coupé — réactiver' : '🔊 Son activé — couper'}</button>
+    <label class="field"><span>Volume : ${Math.round(((s.son && typeof s.son.volume === 'number') ? s.son.volume : 0.85) * 100)}%</span>
+      <input type="range" min="0" max="100" value="${Math.round(((s.son && typeof s.son.volume === 'number') ? s.son.volume : 0.85) * 100)}"
+             oninput="mcVolumeLabel(this)" onchange="mcSetVolume(this.value)" ${(s.son && s.son.mute) ? 'disabled' : ''}></label>
+    <p class="muted small">Réglages appliqués à l'écran de salle (qui joue les sons).</p>
+  </div>
+  <div class="soiree-bloc">
     <h3 class="mc-h3">🏆 Hall of Fame (${hof.length})</h3>
     ${hof.length ? hof.map((g, i) => {
       const o = OBJECTIFS[g.objectif] || { label: g.objectif };
@@ -216,6 +225,18 @@ function mcSoireeHtml(s) {
 
 function mcAfficherFin() { soireeUpdate({ etat: 'fin' }); }
 function mcTerminer() { soireeUpdate({ etat: 'fin', statut: 'terminee' }); }
+
+function mcToggleMute() {
+  const cur = (S.soiree.son && S.soiree.son.mute) || false;
+  soireeUpdate({ 'son.mute': !cur });
+}
+function mcVolumeLabel(input) {
+  const span = input.parentElement.querySelector('span');
+  if (span) span.textContent = 'Volume : ' + input.value + '%';
+}
+function mcSetVolume(v) {
+  soireeUpdate({ 'son.volume': Math.max(0, Math.min(1, Number(v) / 100)) });
+}
 
 function mcRemoveHof(index) {
   const hof = (S.soiree.hallOfFame || []).slice();

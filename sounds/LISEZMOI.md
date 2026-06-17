@@ -18,6 +18,7 @@ Un fichier absent = pas de son (l'app fonctionne quand même).
 | `entracte.mp3` | lancement d'un entracte | |
 | `reprise.mp3` | reprise de partie après l'entracte | si absent : son d'entracte |
 | `fin.mp3` | fin de soirée (écran de remerciements) | |
+| `elimination.mp3` | numéro fatal en « partie de la lose » | si absent : son de tirage |
 
 Taille conseillée : jingles courts ; max 700 Ko pour le remplacement depuis l'app.
 Volume : viser des fichiers déjà équilibrés entre eux (le réglage fin se fait sur la sono).

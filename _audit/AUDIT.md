@@ -93,6 +93,17 @@
 - **Garde-fou son** (incident utilisateur du jour) : un son bloqué faute de clic → le bouton devient rouge « 🔇 Cliquez ici pour activer le son ! » (Sons.onBlocked).
 - `node --check` : à vérifier ci-dessous.
 
+## 2026-06-12 — v0.8.0 : lot de retours n°2 (5 points)
+| Retour | Traitement |
+|---|---|
+| 5 derniers numéros dans la colonne de droite | Réintégré (`.histo`, sous le dernier numéro en grand) |
+| Couper le son / régler le volume | Onglet ⚙️ Soirée → bloc « 🔊 Son de la salle » : bouton mute + slider volume → `son:{mute,volume}` dans la soirée, appliqué par l'écran de salle (Sons.enabled + Sons.setVolume) |
+| Nom du joueur saisi AVANT la vérif | Champ nom (+ autocomplétion habitués) sur l'écran d'intro de vérif ; GAGNÉ valide direct avec ce nom (plus de modal après) ; nom affiché pendant le pointage |
+| Photos accueil/entracte plus grandes | salle-photo 32→46vh, grande 42→58vh, largeurs élargies |
+| **Partie de la lose** (battle royale) | Objectif `lose` (💀). Thème danger rouge sur l'écran (grille, dernier numéro), label « Numéro fatal », couperet plein écran « N — ÉLIMINÉ·E ! » à chaque tirage, son `elimination` optionnel (fallback tirage). N'auto-avance pas d'objectif. GAGNÉ = enregistre le·a survivant·e. |
+- DA lose : choix assumé — comme l'app ne connaît pas les cartons joueurs, la dramatisation porte sur le NUMÉRO fatal (couperet), pas sur un compteur de survivants. À faire évoluer si cartons virtuels un jour.
+- `node --check` : 12/12 OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

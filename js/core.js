@@ -147,6 +147,7 @@ async function createSoiree() {
     entracte: { nom: '', message: '', photo: '' },
     verification: { active: false, suspense: false, coches: [], verdict: '' },
     hallOfFame: [],
+    son: { mute: false, volume: 0.85 },
     ...base
   };
   try {
