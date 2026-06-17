@@ -126,6 +126,10 @@
 - **Bouton 🔄 Recharger / mettre à jour** : en-tête accueil + onglet ⚙️ Soirée (avec n° de version affiché). Indispensable en mode app installée (standalone) où il n'y a pas de barre d'adresse pour faire F5. `appReload()` = location.reload().
 - `node --check` : OK.
 
+## 2026-06-12 — v0.9.3 : image d'accueil (vrai fix)
+- v0.9.1 insuffisant : `max-height` ne fait que limiter, jamais agrandir → l'image restait à sa taille native.
+- Fix : `.salle-accueil .salle-photo { height: 74vh; width: auto; max-width: 90vw; flex-shrink: 0; object-fit: contain; }` → la hauteur d'affichage est FORCÉE (≈ 75 % de l'écran) quelle que soit la résolution source. Compression accueil montée à 1600px pour rester net sur projecteur.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
