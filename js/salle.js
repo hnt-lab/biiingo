@@ -54,10 +54,20 @@ function salleQuit() {
 }
 
 function renderSalle(s, prev) {
+  // ----- Réglages son pilotés depuis la télécommande -----
+  const son = s.son || {};
+  Sons.enabled = !son.mute;
+  Sons.setVolume(typeof son.volume === 'number' ? son.volume : 0.85);
+  if (s.etat !== 'tirage') $('#salleScreen').classList.remove('mode-lose');
+
   // ----- Sons & détection des nouveautés -----
+  const lose = s.objectif === 'lose';
   if (!prev && s.etat === 'accueil') Sons.startLoop('attente'); // arrivée directe sur l'accueil
   if (prev) {
-    if (s.etat === 'tirage' && s.tires.length > (prev.tires ? prev.tires.length : 0)) Sons.play('tirage');
+    // Numéro tiré : en mode lose, son d'élimination (sinon le son de tirage)
+    if (s.etat === 'tirage' && s.tires.length > (prev.tires ? prev.tires.length : 0)) {
+      Sons.play(lose && Sons.has('elimination') ? 'elimination' : 'tirage');
+    }
     if (s.etat === 'entracte' && prev.etat !== 'entracte') Sons.play('entracte');
     // Reprise de la partie après l'entracte (son dédié, sinon le son d'entracte)
     if (s.etat === 'tirage' && prev.etat === 'entracte') Sons.play(Sons.has('reprise') ? 'reprise' : 'entracte');
@@ -141,12 +151,13 @@ function renderSalleTirage(s, prev, rebuilt) {
         <div class="salle-compteur-chip" id="salleCompteur"></div>
       </div>
       <div class="salle-corps">
-        <div class="salle-grille">${cells}</div>
+        <div class="salle-grille" id="salleGrille">${cells}</div>
         <div class="salle-side">
           <div class="side-deco" id="decoHaut"></div>
           <div class="side-centre">
-            <div class="dernier-label">Dernier numéro</div>
+            <div class="dernier-label" id="dernierLabel">Dernier numéro</div>
             <div class="dernier-num" id="dernierNum">—</div>
+            <div class="histo" id="histoNums"></div>
           </div>
           <div class="side-deco" id="decoBas"></div>
         </div>
@@ -154,22 +165,32 @@ function renderSalleTirage(s, prev, rebuilt) {
     </div>`;
   }
   const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
-  $('#salleManche').innerHTML = `Manche ${s.manche} &nbsp;·&nbsp; <b>${obj.label}</b> <span class="obj-detail">(${obj.detail})</span>`;
+  const lose = s.objectif === 'lose';
+
+  // Thème « battle royale » quand l'objectif est la partie de la lose
+  $('#salleScreen').classList.toggle('mode-lose', lose);
+  $('#dernierLabel').textContent = lose ? 'Numéro fatal' : 'Dernier numéro';
+  $('#salleManche').innerHTML = lose
+    ? `Manche ${s.manche} &nbsp;·&nbsp; <b>💀 ${obj.label}</b> <span class="obj-detail">(le dernier debout gagne)</span>`
+    : `Manche ${s.manche} &nbsp;·&nbsp; <b>${obj.label}</b> <span class="obj-detail">(${obj.detail})</span>`;
   $('#salleCompteur').textContent = `${s.tires.length} / ${NB_NUMEROS}`;
 
-  // Décoration personnalisable (haut / bas de la colonne de droite)
   const deco = s.deco || {};
   salleSetDeco('decoHaut', deco.haut);
   salleSetDeco('decoBas', deco.bas);
 
   const prevTires = (prev && prev.tires) || [];
+  let nouveauNum = null;
   for (let n = 1; n <= NB_NUMEROS; n++) {
     const cell = $('#cell' + n);
     if (!cell) continue;
     const lit = s.tires.includes(n);
     const wasLit = !rebuilt && prevTires.includes(n);
     cell.classList.toggle('lit', lit);
-    if (lit && !wasLit) { cell.classList.remove('pop'); void cell.offsetWidth; cell.classList.add('pop'); }
+    if (lit && !wasLit) {
+      cell.classList.remove('pop'); void cell.offsetWidth; cell.classList.add('pop');
+      if (!rebuilt) nouveauNum = n;
+    }
   }
 
   const last = s.tires.length ? s.tires[s.tires.length - 1] : null;
@@ -178,6 +199,26 @@ function renderSalleTirage(s, prev, rebuilt) {
   if (last != null && (!prev || (prev.tires || []).length !== s.tires.length || rebuilt)) {
     dn.classList.remove('bump'); void dn.offsetWidth; dn.classList.add('bump');
   }
+
+  // 5 derniers numéros tirés (hors le tout dernier, déjà affiché en grand)
+  const histo = s.tires.slice(0, -1).slice(-5).reverse();
+  $('#histoNums').innerHTML = histo.map(n => `<span class="histo-num">${n}</span>`).join('');
+
+  // Mode lose : coup de couperet sur le numéro fatal qui vient de sortir
+  if (lose && nouveauNum != null) salleFlashElim(nouveauNum);
+}
+
+// Flash d'élimination plein écran (mode « partie de la lose »)
+function salleFlashElim(n) {
+  const host = document.querySelector('.salle-tirage');
+  if (!host) return;
+  const old = host.querySelector('.elim-flash');
+  if (old) old.remove();
+  const f = document.createElement('div');
+  f.className = 'elim-flash';
+  f.innerHTML = `<div class="elim-num">${n}</div><div class="elim-txt">ÉLIMINÉ·E !</div>`;
+  host.appendChild(f);
+  setTimeout(() => { if (f.isConnected) f.remove(); }, 2200);
 }
 
 function salleSetDeco(id, photo) {

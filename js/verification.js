@@ -6,11 +6,17 @@ function mcVerifHtml(s) {
 
   // Pas de vérification en cours → écran de lancement
   if (!v.active) {
+    const noms = Object.values(S.registre || {})
+      .sort((a, b) => (b.victoires || 0) - (a.victoires || 0)).slice(0, 50);
+    const datalist = noms.map(n => `<option value="${escAttr(n.nom)}"></option>`).join('');
     return `
     <div class="verif-intro">
       <h3 class="mc-h3">🔍 Vérifier un carton</h3>
-      <p class="muted">Quelqu'un a crié « ${obj.label} ! » ? Lance la vérification, puis appuie sur les numéros
-      de SON carton : <span class="ok-txt">vert</span> = sorti, <span class="ko-txt">rouge</span> = pas sorti…</p>
+      <p class="muted">Quelqu'un a crié « ${obj.label} ! » ? Note son nom, lance la vérification, puis appuie sur
+      les numéros de SON carton : <span class="ok-txt">vert</span> = sorti, <span class="ko-txt">rouge</span> = pas sorti…</p>
+      <label class="field"><span>Nom du joueur (pour le Hall of Fame — optionnel)</span>
+        <input id="verifNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
+        <datalist id="nomsConnus">${datalist}</datalist></label>
       <label class="check-line">
         <input type="checkbox" id="verifSuspense" checked>
         <span>🥁 Mode suspense (ambiance + roulement à l'écran)</span>
@@ -41,22 +47,24 @@ function mcVerifHtml(s) {
     cells += `<button class="mc-cell verif ${cls}" onclick="verifTap(${n})">${n}</button>`;
   }
   const nbKo = coches.filter(n => !s.tires.includes(n)).length;
+  const cible = v.gagnantNom ? ' de <b>' + esc(v.gagnantNom) + '</b>' : ' du joueur';
   return `
-  <div class="mc-alerte">${v.suspense ? '🥁' : '🔍'} Appuie sur les numéros du carton du joueur
+  <div class="mc-alerte">${v.suspense ? '🥁' : '🔍'} Appuie sur les numéros du carton${cible}
     <span class="verif-bilan">${coches.length} pointé(s)${nbKo ? ` · <span class="ko-txt">${nbKo} pas sorti(s) !</span>` : ''}</span></div>
   <div class="mc-grille">${cells}</div>
   <div class="mc-actions-row verdict-row">
     <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
     <button class="btn ko" onclick="verifVerdictFaux()">💋 Faux bingo</button>
-    <button class="btn ok" onclick="verifGagneModal()">✨ GAGNÉ</button>
+    <button class="btn ok" onclick="verifConfirmGagne()">✨ GAGNÉ</button>
   </div>`;
 }
 
 function verifStart() {
   const suspense = $('#verifSuspense').checked;
+  const nom = (($('#verifNom') && $('#verifNom').value) || '').trim();
   soireeUpdate({
     etat: 'verification',
-    verification: { active: true, suspense, coches: [], verdict: '', gagnantNom: '' }
+    verification: { active: true, suspense, coches: [], verdict: '', gagnantNom: nom }
   });
 }
 
@@ -87,31 +95,13 @@ function verifVerdictFaux() {
   verifProgrammerRetour();
 }
 
-// GAGNÉ → champ nom optionnel (autocomplétion depuis le registre des habitués), skippable d'un tap
-function verifGagneModal() {
-  const noms = Object.values(S.registre || {})
-    .sort((a, b) => (b.victoires || 0) - (a.victoires || 0))
-    .slice(0, 50);
-  const datalist = noms.map(n => `<option value="${escAttr(n.nom)}">${n.victoires > 1 ? n.victoires + ' victoires' : ''}</option>`).join('');
-  modal(`
-    <h3>✨ On a un·e gagnant·e !</h3>
-    <label class="field"><span>Son nom (pour le Hall of Fame — optionnel)</span>
-      <input id="gagnantNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
-      <datalist id="nomsConnus">${datalist}</datalist></label>
-    <div class="modal-btns">
-      <button class="btn ghost" onclick="verifConfirmGagne('')">Passer →</button>
-      <button class="btn primary" onclick="verifConfirmGagne($('#gagnantNom').value)">Valider 🏆</button>
-    </div>`);
-  setTimeout(() => $('#gagnantNom').focus(), 50);
-}
+// Objectif suivant après un gagné : quine → double quine → carton plein (la lose reste la lose)
+const OBJECTIF_SUIVANT = { quine: 'double', double: 'carton', carton: 'carton', lose: 'lose' };
 
-// Objectif suivant après un gagné : quine → double quine → carton plein
-const OBJECTIF_SUIVANT = { quine: 'double', double: 'carton', carton: 'carton' };
-
-function verifConfirmGagne(nomBrut) {
-  closeModal();
-  const nom = String(nomBrut || '').trim();
+// GAGNÉ : le nom a été saisi avant la vérification → on valide directement
+function verifConfirmGagne() {
   const s = S.soiree;
+  const nom = (s.verification && s.verification.gagnantNom || '').trim();
   const entry = { nom, objectif: s.objectif, manche: s.manche, ts: Date.now() };
   const patch = {
     'verification.verdict': 'gagne',
@@ -119,7 +109,9 @@ function verifConfirmGagne(nomBrut) {
     hallOfFame: FV.arrayUnion(entry)
   };
   const suivant = OBJECTIF_SUIVANT[s.objectif] || 'quine';
-  if (suivant !== s.objectif) {
+  if (s.objectif === 'lose') {
+    toast('Survivant·e enregistré·e ! 💀🏆');
+  } else if (suivant !== s.objectif) {
     patch.objectif = suivant;
     toast('Objectif suivant : ' + OBJECTIFS[suivant].label + ' 🎯');
   } else {

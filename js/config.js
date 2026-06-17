@@ -1,9 +1,11 @@
 // Constantes de l'application Biiingo
 
 const OBJECTIFS = {
-  quine:  { label: 'Quine',        detail: '1 ligne',   emoji: '1️⃣' },
-  double: { label: 'Double quine', detail: '2 lignes',  emoji: '2️⃣' },
-  carton: { label: 'Carton plein', detail: 'tout le carton', emoji: '🏆' }
+  quine:  { label: 'Quine',          detail: '1 ligne',        emoji: '1️⃣' },
+  double: { label: 'Double quine',   detail: '2 lignes',       emoji: '2️⃣' },
+  carton: { label: 'Carton plein',   detail: 'tout le carton', emoji: '🏆' },
+  // Mode spécial « battle royale » : qui a le numéro tiré est éliminé, le dernier debout gagne
+  lose:   { label: 'Partie de la lose', detail: 'le dernier debout gagne', emoji: '💀' }
 };
 
 // Alphabet sans lettres ambiguës (pas de I/O/L) pour les codes de soirée
@@ -30,7 +32,8 @@ const SONS_LISTE = [
   { name: 'reprise',   label: 'Reprise de partie',        info: 'après l\'entracte (sinon : son d\'entracte)' },
   { name: 'attente',   label: 'Musique d\'attente',       info: 'en boucle sur l\'écran d\'accueil' },
   { name: 'debut',     label: 'Début de soirée',          info: 'accueil → manche 1' },
-  { name: 'fin',       label: 'Fin de soirée',            info: 'au passage à l\'écran de fin' }
+  { name: 'fin',       label: 'Fin de soirée',            info: 'au passage à l\'écran de fin' },
+  { name: 'elimination', label: 'Élimination (lose)',     info: 'numéro fatal en partie de la lose (sinon : son de tirage)' }
 ];
 
 // Fond d'écran d'entracte (compressé plus grand qu'un portrait)

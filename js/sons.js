@@ -12,7 +12,8 @@ const SOUND_FILES = {
   reprise:   'sounds/reprise.mp3',    // reprise de la partie après l'entracte (sinon : son d'entracte)
   attente:   'sounds/attente.mp3',    // musique d'attente — boucle pendant l'écran d'accueil
   debut:     'sounds/debut.mp3',      // début de soirée (accueil → manche 1)
-  fin:       'sounds/fin.mp3'         // fin de soirée (passage à l'écran de fin)
+  fin:       'sounds/fin.mp3',        // fin de soirée (passage à l'écran de fin)
+  elimination: 'sounds/elimination.mp3' // mode « partie de la lose » : numéro fatal (sinon : son de tirage)
 };
 
 // Sons joués en boucle
@@ -40,10 +41,20 @@ const Sons = {
     if (!dataUrl) { delete this.custom[name]; return; }
     const a = new Audio(dataUrl);
     a.preload = 'auto';
+    a.volume = this.volume;
     if (SOUND_LOOPS[name]) a.loop = true;
     this.custom[name] = a;
   },
   clearCustom() { this.custom = {}; },
+
+  // Volume global (0 → 1) appliqué à tous les sons, fichiers et persos
+  volume: 0.85,
+  setVolume(v) {
+    v = Math.max(0, Math.min(1, v));
+    this.volume = v;
+    for (const name in this.audios) this.audios[name].volume = v;
+    for (const name in this.custom) this.custom[name].volume = v;
+  },
 
   _pick(name) {
     if (this.custom[name]) return this.custom[name];
