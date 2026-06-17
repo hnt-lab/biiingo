@@ -56,7 +56,14 @@ const Sons = {
     for (const name in this.custom) this.custom[name].volume = v;
   },
 
+  disabled: {}, // sons désactivés individuellement (depuis l'éditeur)
+  setDisabled(list) {
+    this.disabled = {};
+    (list || []).forEach(n => { this.disabled[n] = true; });
+  },
+
   _pick(name) {
+    if (this.disabled[name]) return null;
     if (this.custom[name]) return this.custom[name];
     if (this.missing[name]) return null;
     return this.audios[name] || null;

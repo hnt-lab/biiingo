@@ -104,6 +104,17 @@
 - DA lose : choix assumé — comme l'app ne connaît pas les cartons joueurs, la dramatisation porte sur le NUMÉRO fatal (couperet), pas sur un compteur de survivants. À faire évoluer si cartons virtuels un jour.
 - `node --check` : 12/12 OK.
 
+## 2026-06-12 — v0.9.0 : lot retours n°3 (réorg + ajustements)
+| Retour | Traitement |
+|---|---|
+| Désactiver un son individuellement | Bouton 🔊/🔇 par son dans Édition → `son.off[]` (liste), respecté par Sons.setDisabled ; barré + grisé dans la liste ; sauvé dans les présets (sonOff) |
+| DA mort subite : garder fond+grille, changer couleur dernier numéro | Thème rouge sur fond/grille/cases RETIRÉ ; couperet plein écran RETIRÉ ; seul le « Numéro fatal » (grand numéro) passe au rouge + label adapté + accent manche |
+| Image d'accueil 75/80 % | `.salle-accueil .salle-photo` 74vh/82vw, titre/sous-titre réduits |
+| Image de fond pour l'écran de fin | `ecrans.fin.fond` éditable (voile sombre), comme le fond d'entracte |
+| Réorg Édition par étapes chronologiques | Accueil → Pendant la partie (déco+bandeau fusionnés) → Vérification (anims gagné+faux fusionnés) → Entracte (programme+fond fusionnés) → Fin (écran+fond fusionnés) → Sons (avant-dernier) → Présets (dernier) |
+| Réorg Soirée | « Écran de salle » en 1er, panneau mis en avant + gros boutons nav ; puis Son ; Code de la soirée en version compacte plus bas |
+- `node --check` : 13/13 OK. Aucune référence orpheline (grep).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

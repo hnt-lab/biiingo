@@ -122,7 +122,8 @@ async function createSoiree() {
     anims: {
       gagne: { style: 'pluie', parts: [], vedette: '' },
       faux: { style: 'douche', parts: [], vedette: '' }
-    }
+    },
+    son: { mute: false, volume: 0.85, off: [] }
   };
   if (presetId) {
     try {
@@ -135,6 +136,7 @@ async function createSoiree() {
         base.deco = d.deco || base.deco;
         base.entracteFond = d.entracteFond || '';
         if (d.anims && d.anims.gagne) base.anims = d.anims;
+        if (d.sonOff) base.son = { mute: false, volume: 0.85, off: d.sonOff };
       }
     } catch (e) {}
   }

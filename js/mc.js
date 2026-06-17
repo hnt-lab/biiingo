@@ -180,28 +180,24 @@ function mcLancerEntracteLibre() {
 function mcSoireeHtml(s) {
   const hof = s.hallOfFame || [];
   const isOwner = s.ownerUid === S.user.uid;
+  const vol = Math.round(((s.son && typeof s.son.volume === 'number') ? s.son.volume : 0.85) * 100);
   return `
-  <div class="soiree-bloc">
-    <h3 class="mc-h3">Code de la soirée</h3>
-    <div class="code-big">${esc(s.code)}</div>
-    <p class="muted small">À donner à un·e autre MC pour qu'il/elle rejoigne avec son compte.</p>
-  </div>
-  <div class="soiree-bloc">
-    <h3 class="mc-h3">🖥 Écran de salle</h3>
-    <div class="mc-actions-row">
-      <button class="btn ${s.etat === 'accueil' ? 'primary' : ''}" onclick="soireeUpdate({etat:'accueil'})">🏠 Accueil</button>
-      <button class="btn ${s.etat === 'tirage' ? 'primary' : ''}" onclick="soireeUpdate({etat:'tirage'})">🎲 Partie</button>
-      <button class="btn ${s.etat === 'fin' ? 'primary' : ''}" onclick="mcAfficherFin()">🏆 Fin</button>
+  <div class="soiree-bloc bloc-salle">
+    <h3 class="mc-h3">🖥 Écran de salle — affichage</h3>
+    <div class="salle-nav">
+      <button class="btn big ${s.etat === 'accueil' ? 'primary' : ''}" onclick="soireeUpdate({etat:'accueil'})">🏠<br>Accueil</button>
+      <button class="btn big ${s.etat === 'tirage' ? 'primary' : ''}" onclick="soireeUpdate({etat:'tirage'})">🎲<br>Partie</button>
+      <button class="btn big ${s.etat === 'fin' ? 'primary' : ''}" onclick="mcAfficherFin()">🏆<br>Fin</button>
     </div>
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">🔊 Son de la salle</h3>
     <button class="btn block ${(s.son && s.son.mute) ? 'warn' : 'primary'}" onclick="mcToggleMute()">
       ${(s.son && s.son.mute) ? '🔇 Son coupé — réactiver' : '🔊 Son activé — couper'}</button>
-    <label class="field"><span>Volume : ${Math.round(((s.son && typeof s.son.volume === 'number') ? s.son.volume : 0.85) * 100)}%</span>
-      <input type="range" min="0" max="100" value="${Math.round(((s.son && typeof s.son.volume === 'number') ? s.son.volume : 0.85) * 100)}"
+    <label class="field"><span>Volume : ${vol}%</span>
+      <input type="range" min="0" max="100" value="${vol}"
              oninput="mcVolumeLabel(this)" onchange="mcSetVolume(this.value)" ${(s.son && s.son.mute) ? 'disabled' : ''}></label>
-    <p class="muted small">Réglages appliqués à l'écran de salle (qui joue les sons).</p>
+    <p class="muted small">Pour couper un seul son (ex. le tirage), va dans ✏️ Édition → 🔊 Sons.</p>
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">🏆 Hall of Fame (${hof.length})</h3>
@@ -210,6 +206,10 @@ function mcSoireeHtml(s) {
       return `<div class="hof-row"><span><b>${esc(g.nom || 'Mystère')}</b> · ${o.label} · m.${g.manche}</span>
         <button class="btn icon small" onclick="mcRemoveHof(${i})">🗑</button></div>`;
     }).join('') : '<p class="muted">Aucun gagnant pour l\'instant.</p>'}
+  </div>
+  <div class="soiree-bloc code-bloc">
+    <span class="muted small">Code de la soirée (à donner aux autres MC)</span>
+    <span class="code-mini">${esc(s.code)}</span>
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">📖 Aide</h3>

@@ -9,19 +9,27 @@ function mcEditionHtml(s) {
   const band = s.bandeau || {};
   const deco = s.deco || {};
   return `
+  <p class="ed-intro muted small">Réglages dans l'ordre d'une soirée — de l'accueil jusqu'au générique de fin.</p>
+
+  <!-- 1. AVANT : écran d'accueil -->
   <div class="soiree-bloc">
-    <h3 class="mc-h3">📢 Bandeau défilant</h3>
-    <label class="field"><span>Texte (pendant la partie si affiché, toujours pendant l'entracte)</span>
-      <input id="edBandTxt" type="text" maxlength="200" value="${escAttr(band.texte || '')}"
-             placeholder="Pensez au bar 🍹 · Prochaine soirée le 28 juin !"></label>
-    <div class="mc-actions-row">
-      <button class="btn" onclick="edBandeauSave(false)">💾 Garder masqué</button>
-      <button class="btn ${band.actif ? 'primary' : ''}" onclick="edBandeauSave(true)">📢 Afficher</button>
+    <h3 class="mc-h3">1️⃣ 🏠 Accueil (avant le début)</h3>
+    <label class="field"><span>Message d'accueil</span>
+      <input id="edAccTexte" type="text" maxlength="120" value="${escAttr(acc.texte || '')}" placeholder="Ça commence bientôt… ✨"></label>
+    <div class="photo-line">
+      ${acc.photo ? `<img src="${escAttr(acc.photo)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
+      <span class="muted small" style="flex:1">Grande image d'accueil</span>
+      <input type="file" id="edAccPhoto" accept="image/*" style="display:none" onchange="edPhotoAccueil(this)">
+      <button class="btn small" onclick="$('#edAccPhoto').click()">📷</button>
+      ${acc.photo ? `<button class="btn small ghost" onclick="edSaveAccueil(true)">🗑</button>` : ''}
     </div>
+    <button class="btn block" onclick="edSaveAccueil(false)">💾 Enregistrer l'accueil</button>
   </div>
 
+  <!-- 2. PENDANT LA PARTIE : déco du tableau + bandeau -->
   <div class="soiree-bloc">
-    <h3 class="mc-h3">🖼 Décoration de l'écran (colonne du dernier numéro)</h3>
+    <h3 class="mc-h3">2️⃣ 🎲 Pendant la partie</h3>
+    <p class="muted small">Décoration de la colonne du dernier numéro (image en haut / en bas) :</p>
     <div class="photo-line">
       ${deco.haut ? `<img src="${escAttr(deco.haut)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
       <span class="muted small" style="flex:1">En haut</span>
@@ -36,55 +44,29 @@ function mcEditionHtml(s) {
       <button class="btn small" onclick="$('#edDecoBas').click()">📷</button>
       ${deco.bas ? `<button class="btn icon small" onclick="edRemoveDeco('bas')">🗑</button>` : ''}
     </div>
-  </div>
-
-  <div class="soiree-bloc">
-    <h3 class="mc-h3">🎭 Fond d'écran de l'entracte</h3>
-    <div class="photo-line">
-      ${s.entracteFond ? `<img src="${escAttr(s.entracteFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌌</div>'}
-      <span class="muted small" style="flex:1">Affiché derrière le nom de l'artiste</span>
-      <input type="file" id="edFond" accept="image/*" style="display:none" onchange="edPhotoFond(this)">
-      <button class="btn small" onclick="$('#edFond').click()">📷</button>
-      ${s.entracteFond ? `<button class="btn icon small" onclick="edRemoveFond()">🗑</button>` : ''}
+    <hr class="ed-sep">
+    <p class="muted small">📢 Bandeau défilant (pendant la partie si affiché, toujours pendant l'entracte) :</p>
+    <label class="field"><span>Texte du bandeau</span>
+      <input id="edBandTxt" type="text" maxlength="200" value="${escAttr(band.texte || '')}"
+             placeholder="Pensez au bar 🍹 · Prochaine soirée le 28 juin !"></label>
+    <div class="mc-actions-row">
+      <button class="btn" onclick="edBandeauSave(false)">💾 Garder masqué</button>
+      <button class="btn ${band.actif ? 'primary' : ''}" onclick="edBandeauSave(true)">📢 Afficher</button>
     </div>
   </div>
 
+  <!-- 3. VÉRIFICATION : animations de verdict -->
   <div class="soiree-bloc">
-    <h3 class="mc-h3">🔊 Sons (remplaçables — fichiers mp3 courts, max 700 Ko)</h3>
-    ${SONS_LISTE.map(son => `
-      <div class="son-row">
-        <div class="son-info"><b>${son.label}</b>
-          ${son.info ? `<span class="muted small"> · ${son.info}</span>` : ''}
-          <span class="son-statut ${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : ''}">${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : 'base'}</span>
-        </div>
-        <div class="son-btns">
-          <button class="btn icon small" onclick="edSonPlay('${son.name}')" title="Écouter">▶</button>
-          <input type="file" id="edSon_${son.name}" accept="audio/*" style="display:none" onchange="edSonUpload(this,'${son.name}')">
-          <button class="btn icon small" onclick="$('#edSon_${son.name}').click()" title="Remplacer">📁</button>
-          ${S.sonsCustom && S.sonsCustom[son.name] ? `<button class="btn icon small" onclick="edSonReset('${son.name}')" title="Revenir au son de base">🗑</button>` : ''}
-        </div>
-      </div>`).join('')}
-    <p class="muted small">Les sons personnalisés sont gardés avec le compte du créateur de la soirée — valables pour toutes ses soirées.</p>
+    <h3 class="mc-h3">3️⃣ 🔍 Vérification — animations de verdict</h3>
+    ${edAnimInnerHtml(s, 'gagne', '🎉 Quand c\'est GAGNÉ')}
+    <hr class="ed-sep">
+    ${edAnimInnerHtml(s, 'faux', '💋 Quand c\'est FAUX BINGO')}
   </div>
 
-  ${edAnimBlocHtml(s, 'gagne', '🎉 Animation GAGNÉ')}
-  ${edAnimBlocHtml(s, 'faux', '💋 Animation FAUX BINGO')}
-
+  <!-- 4. ENTRACTE : programme + fond -->
   <div class="soiree-bloc">
-    <h3 class="mc-h3">🏠 Écran d'accueil</h3>
-    <label class="field"><span>Message d'accueil</span>
-      <input id="edAccTexte" type="text" maxlength="120" value="${escAttr(acc.texte || '')}" placeholder="Ça commence bientôt… ✨"></label>
-    <div class="photo-line">
-      ${acc.photo ? `<img src="${escAttr(acc.photo)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
-      <input type="file" id="edAccPhoto" accept="image/*" style="display:none" onchange="edPhotoAccueil(this)">
-      <button class="btn small" onclick="$('#edAccPhoto').click()">📷 Photo</button>
-      ${acc.photo ? `<button class="btn small ghost" onclick="edSaveAccueil(true)">🗑 Retirer</button>` : ''}
-    </div>
-    <button class="btn block" onclick="edSaveAccueil(false)">💾 Enregistrer l'accueil</button>
-  </div>
-
-  <div class="soiree-bloc">
-    <h3 class="mc-h3">🎭 Programme d'entractes</h3>
+    <h3 class="mc-h3">4️⃣ 🎭 Entracte</h3>
+    <p class="muted small">Programme des artistes :</p>
     ${prog.length ? prog.map((a, i) => `
       <div class="prog-card">
         ${a.photo ? `<img src="${escAttr(a.photo)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🎭</div>'}
@@ -92,12 +74,30 @@ function mcEditionHtml(s) {
         <button class="btn icon small" onclick="edRemoveArtiste(${i})">🗑</button>
       </div>`).join('') : '<p class="muted">Aucun artiste au programme.</p>'}
     <button class="btn block" onclick="edArtisteModal()">➕ Ajouter un artiste</button>
+    <hr class="ed-sep">
+    <p class="muted small">🌌 Fond d'écran de l'entracte (derrière le nom de l'artiste) :</p>
+    <div class="photo-line">
+      ${s.entracteFond ? `<img src="${escAttr(s.entracteFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌌</div>'}
+      <span class="muted small" style="flex:1"></span>
+      <input type="file" id="edFond" accept="image/*" style="display:none" onchange="edPhotoFond(this)">
+      <button class="btn small" onclick="$('#edFond').click()">📷</button>
+      ${s.entracteFond ? `<button class="btn icon small" onclick="edRemoveFond()">🗑</button>` : ''}
+    </div>
   </div>
 
+  <!-- 5. FIN : écran de fin + fond -->
   <div class="soiree-bloc">
-    <h3 class="mc-h3">🏆 Écran de fin</h3>
+    <h3 class="mc-h3">5️⃣ 🏆 Écran de fin</h3>
     <label class="field"><span>Message de remerciement</span>
-      <input id="edFinTexte" type="text" maxlength="120" value="${escAttr(fin.texte || '')}" placeholder="Merci à toutes et tous ! 💖"></label>
+      <input id="edFinTexte" type="text" maxlength="120" value="${escAttr(fin.texte || '')}" placeholder="Merci à toutes et tous ! ❤️"></label>
+    <div class="photo-line">
+      ${fin.fond ? `<img src="${escAttr(fin.fond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌠</div>'}
+      <span class="muted small" style="flex:1">Image de fond (optionnelle)</span>
+      <input type="file" id="edFinFond" accept="image/*" style="display:none" onchange="edPhotoFinFond(this)">
+      <button class="btn small" onclick="$('#edFinFond').click()">📷</button>
+      ${fin.fond ? `<button class="btn icon small" onclick="edRemoveFinFond()">🗑</button>` : ''}
+    </div>
+    <p class="muted small">Liens réseaux (affichés sur l'écran de fin) :</p>
     <div id="edLiensList">
       ${liens.map((l, i) => `<div class="hof-row"><span><b>${esc(l.label)}</b> · ${esc(l.url)}</span>
         <button class="btn icon small" onclick="edRemoveLien(${i})">🗑</button></div>`).join('')}
@@ -108,28 +108,51 @@ function mcEditionHtml(s) {
     <button class="btn block" onclick="edSaveFin()">💾 Enregistrer l'écran de fin</button>
   </div>
 
+  <!-- Avant-dernier : sons -->
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">🔊 Sons (remplaçables — mp3 courts, max 700 Ko)</h3>
+    ${SONS_LISTE.map(son => {
+      const off = (s.son && s.son.off || []).includes(son.name);
+      return `
+      <div class="son-row ${off ? 'son-off' : ''}">
+        <div class="son-info"><b>${son.label}</b>
+          ${son.info ? `<span class="muted small"> · ${son.info}</span>` : ''}
+          <span class="son-statut ${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : ''}">${S.sonsCustom && S.sonsCustom[son.name] ? 'perso' : 'base'}</span>
+        </div>
+        <div class="son-btns">
+          <button class="btn icon small ${off ? '' : 'primary'}" onclick="edSonToggle('${son.name}')" title="${off ? 'Réactiver ce son' : 'Désactiver ce son'}">${off ? '🔇' : '🔊'}</button>
+          <button class="btn icon small" onclick="edSonPlay('${son.name}')" title="Écouter">▶</button>
+          <input type="file" id="edSon_${son.name}" accept="audio/*" style="display:none" onchange="edSonUpload(this,'${son.name}')">
+          <button class="btn icon small" onclick="$('#edSon_${son.name}').click()" title="Remplacer">📁</button>
+          ${S.sonsCustom && S.sonsCustom[son.name] ? `<button class="btn icon small" onclick="edSonReset('${son.name}')" title="Revenir au son de base">🗑</button>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+    <p class="muted small">🔇 désactive un seul son (les autres restent). Les sons personnalisés sont gardés avec le compte.</p>
+  </div>
+
+  <!-- Dernier : présets -->
   <div class="soiree-bloc">
     <h3 class="mc-h3">💾 Présets</h3>
-    <p class="muted small">Enregistre les réglages de cette soirée (programme, écrans, bandeau) pour les réutiliser la prochaine fois.</p>
+    <p class="muted small">Enregistre TOUS ces réglages (écrans, images, bandeau, animations, sons coupés) pour les réutiliser la prochaine fois.</p>
     <button class="btn block primary" onclick="edSavePresetModal()">💾 Sauver comme préset</button>
     <div id="edPresetList"></div>
   </div>`;
 }
 
-// ---------- Animations de verdict ----------
-function edAnimBlocHtml(s, type, titre) {
+// ---------- Animations de verdict (contenu interne, intégré au bloc Vérification) ----------
+function edAnimInnerHtml(s, type, titre) {
   const conf = (s.anims && s.anims[type]) || {};
   const styleActif = conf.style || (type === 'gagne' ? 'pluie' : 'douche');
   const parts = conf.parts || [];
   return `
-  <div class="soiree-bloc">
-    <h3 class="mc-h3">${titre}</h3>
+    <p class="muted small"><b>${titre}</b> — style :</p>
     <div class="anim-styles">
       ${ANIM_STYLES[type].map(st =>
         `<button class="btn small ${styleActif === st.id ? 'primary' : ''}"
           onclick="edAnimStyle('${type}','${st.id}')">${st.label}</button>`).join('')}
     </div>
-    <p class="muted small">Images PNG à fond transparent (max ${ANIM_MAX_PARTS}) — elles remplacent les emojis dans l'animation :</p>
+    <p class="muted small">Images PNG transparentes (max ${ANIM_MAX_PARTS}) — remplacent les emojis :</p>
     <div class="photo-line">
       ${parts.map((p, i) => `
         <span class="anim-part-thumb"><img src="${escAttr(p)}" alt="">
@@ -137,15 +160,11 @@ function edAnimBlocHtml(s, type, titre) {
       ${parts.length < ANIM_MAX_PARTS ? `
         <input type="file" id="edAnimPart_${type}" accept="image/png,image/webp" style="display:none" onchange="edAnimAddPart(this,'${type}')">
         <button class="btn small" onclick="$('#edAnimPart_${type}').click()">➕ PNG</button>` : ''}
-    </div>
-    <p class="muted small">Image « vedette » (optionnelle — grande entrée au centre) :</p>
-    <div class="photo-line">
-      ${conf.vedette ? `<img src="${escAttr(conf.vedette)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🌟</div>'}
+      ${conf.vedette ? `<img src="${escAttr(conf.vedette)}" class="prog-photo" alt="" title="image vedette">` : ''}
       <input type="file" id="edAnimVed_${type}" accept="image/png,image/webp" style="display:none" onchange="edAnimVedette(this,'${type}')">
-      <button class="btn small" onclick="$('#edAnimVed_${type}').click()">📷</button>
+      <button class="btn small" onclick="$('#edAnimVed_${type}').click()" title="Image vedette (grande entrée au centre)">🌟</button>
       ${conf.vedette ? `<button class="btn icon small" onclick="edAnimDelVedette('${type}')">🗑</button>` : ''}
-    </div>
-  </div>`;
+    </div>`;
 }
 
 function edAnimRefresh() {
@@ -263,6 +282,32 @@ async function edPhotoFond(input) {
 }
 function edRemoveFond() {
   soireeUpdate({ entracteFond: '' });
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+// ---------- Fond d'écran de fin ----------
+async function edPhotoFinFond(input) {
+  const data = await compressImage(input.files[0], FOND_MAX_DIM, FOND_QUALITY);
+  if (!data) return;
+  soireeUpdate({ 'ecrans.fin.fond': data });
+  toast('Fond de l\'écran de fin mis à jour 🌠');
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+function edRemoveFinFond() {
+  soireeUpdate({ 'ecrans.fin.fond': '' });
+  editionRendered = false;
+  setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
+}
+
+// ---------- Désactiver / réactiver un son individuel ----------
+function edSonToggle(name) {
+  const off = ((S.soiree.son && S.soiree.son.off) || []).slice();
+  const i = off.indexOf(name);
+  if (i >= 0) off.splice(i, 1); else off.push(name);
+  soireeUpdate({ 'son.off': off });
+  toast(i >= 0 ? 'Son réactivé 🔊' : 'Son désactivé 🔇');
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
 }
@@ -435,6 +480,7 @@ async function edSavePreset() {
       deco: s.deco || { haut: '', bas: '' },
       entracteFond: s.entracteFond || '',
       anims: s.anims || {},
+      sonOff: (s.son && s.son.off) || [],
       updatedAt: FV.serverTimestamp()
     });
     toast('Préset enregistré 💾');
