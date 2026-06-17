@@ -362,7 +362,8 @@ async function edSonReset(name) {
 // ---------- Écran d'accueil ----------
 let edAccPhotoData = null; // photo en attente d'enregistrement
 async function edPhotoAccueil(input) {
-  const data = await compressImage(input.files[0]);
+  // Grande image d'accueil : compressée en haute définition (pour remplir l'écran sans flou)
+  const data = await compressImage(input.files[0], FOND_MAX_DIM, FOND_QUALITY);
   if (data) { edAccPhotoData = data; toast('Photo prête — pense à Enregistrer.'); }
 }
 function edSaveAccueil(retirerPhoto) {

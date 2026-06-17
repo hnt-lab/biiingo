@@ -169,7 +169,8 @@ a { color: var(--rose); }
 .salle-photo { max-height: 58vh; max-width: 76vw; border-radius: 18px; border: 3px solid var(--or); }
 .salle-photo.grande { max-height: 62vh; max-width: 82vw; }
 /* Écran d'accueil : l'image domine (≈ 75-80 % de l'écran) */
-.salle-accueil .salle-photo { max-height: 74vh; max-width: 82vw; }
+.salle-accueil { gap: 2vh; padding: 2vh 3vw; }
+.salle-accueil .salle-photo { max-height: 78vh; max-width: 86vw; width: auto; }
 .salle-accueil .salle-titre-event { font-size: clamp(1.4em, 4.5vw, 3em); }
 .salle-accueil .salle-soustitre { font-size: clamp(1em, 2.4vw, 1.5em); }
 .salle-dots { display: flex; gap: 14px; }
@@ -251,9 +252,19 @@ a { color: var(--rose); }
 }
 
 /* ===== Mode « Partie de la lose » (mort subite) =====
-   On garde le fond, la grille et la couleur des cases sorties habituels.
-   Seul le « numéro fatal » (dernier sorti) change de couleur pour signaler le danger. */
+   Fond + grille (structure) habituels. Les cases sorties passent en ROUGE avec leur
+   animation « couperet », et le numéro fatal (dernier sorti) en rouge aussi. */
 #salleScreen.mode-lose .salle-manche b { color: #ff5f6b; }
+#salleScreen.mode-lose .salle-grille .cell.lit {
+  background: linear-gradient(135deg, #ff5f6b, #8c1020);
+  box-shadow: 0 0 14px #ff5f6b66;
+}
+#salleScreen.mode-lose .salle-grille .cell.lit.pop { animation: cellElim .6s ease; }
+@keyframes cellElim {
+  0% { transform: scale(1.5) rotate(0); filter: brightness(2.2); }
+  40% { transform: scale(.82) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); filter: brightness(1); }
+}
 #salleScreen.mode-lose .dernier-label { color: #ff8088; }
 #salleScreen.mode-lose .dernier-num {
   background: linear-gradient(120deg, #ff5f6b, #ffb199);
