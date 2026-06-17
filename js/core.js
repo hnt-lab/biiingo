@@ -49,6 +49,12 @@ function showScreen(id) {
   $('#' + id).classList.add('active');
 }
 
+// Recharge l'app (utile en mode installé sur téléphone : pas de barre d'adresse pour F5)
+function appReload() {
+  toast('Rechargement…');
+  setTimeout(() => { try { location.reload(); } catch (e) { location.href = location.href; } }, 150);
+}
+
 // ---------- Accueil (après connexion) ----------
 function renderHome() {
   showScreen('homeScreen');
