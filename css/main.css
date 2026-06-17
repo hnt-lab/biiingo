@@ -446,10 +446,12 @@ a { color: var(--rose); }
   position: absolute; left: 0; right: 0; bottom: 0; height: 0; overflow: hidden;
   background: var(--bg2); z-index: 30; /* même couleur que les cases NON sorties (violet par défaut) */
   display: flex; align-items: center; transition: height .3s;
-  border-top: 0 solid var(--bord); border-bottom: 0 solid var(--bord);
+  border-top: 0 solid transparent; border-bottom: 0 solid transparent;
+  /* liseré dégradé or→rose, comme les cases sorties et le dernier numéro */
+  border-image: linear-gradient(135deg, var(--or), var(--rose)) 1;
 }
 .bandeau.show {
-  border-top-width: 3px; border-bottom-width: 3px;
+  border-top-width: 4px; border-bottom-width: 4px;
   box-shadow: 0 -4px 18px #0006;
 }
 .bandeau.show { height: clamp(38px, 6.5vh, 64px); }
