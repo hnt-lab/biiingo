@@ -139,6 +139,9 @@
 - (Restent inline, plus petits : photos d'artistes, déco, PNG d'animation — à migrer aussi si la fiche regrossit.)
 - `node --check` : 13/13 OK.
 
+## 2026-06-12 — v0.10.1 : couleur du bandeau corrigée
+- Malentendu : « même couleur que les cases » = cases NON sorties (violet/prune par défaut), pas le doré. Bandeau → fond `var(--bg2)` + bord `var(--bord)` (identique aux cases vides), texte clair, séparateur ✦ rose.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

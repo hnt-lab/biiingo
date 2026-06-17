@@ -444,21 +444,20 @@ a { color: var(--rose); }
 /* ----- Bandeau défilant ----- */
 .bandeau {
   position: absolute; left: 0; right: 0; bottom: 0; height: 0; overflow: hidden;
-  background: linear-gradient(135deg, var(--or), var(--rose)); z-index: 30; /* même couleur que les cases sorties */
+  background: var(--bg2); z-index: 30; /* même couleur que les cases NON sorties (violet par défaut) */
   display: flex; align-items: center; transition: height .3s;
-  border-top: 0 solid #ffffff66; border-bottom: 0 solid #ffffff66;
+  border-top: 0 solid var(--bord); border-bottom: 0 solid var(--bord);
 }
 .bandeau.show {
   border-top-width: 3px; border-bottom-width: 3px;
-  box-shadow: 0 -4px 18px #e8c55844;
+  box-shadow: 0 -4px 18px #0006;
 }
 .bandeau.show { height: clamp(38px, 6.5vh, 64px); }
 .bandeau-piste { display: flex; white-space: nowrap; animation: defile 22s linear infinite; }
 .bandeau-piste > span {
-  font-size: clamp(1em, 3.6vh, 1.7em); font-weight: 700; color: #fff;
-  text-shadow: 0 1px 3px #0007; padding: 0 4vw;
+  font-size: clamp(1em, 3.6vh, 1.7em); font-weight: 700; color: var(--texte); padding: 0 4vw;
 }
-.bandeau-sep { padding: 0 4vw; opacity: .85; }
+.bandeau-sep { padding: 0 4vw; color: var(--rose); }
 @keyframes defile { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* ============================================================
