@@ -8,6 +8,9 @@ function mcEditionHtml(s) {
   const liens = fin.liens || [];
   const band = s.bandeau || {};
   const deco = s.deco || {};
+  const accPhoto = mediaGet('accueil', acc.photo);
+  const entrFond = mediaGet('entracteFond', s.entracteFond);
+  const finFond = mediaGet('finFond', fin.fond);
   return `
   <p class="ed-intro muted small">Réglages dans l'ordre d'une soirée — de l'accueil jusqu'au générique de fin.</p>
 
@@ -17,11 +20,11 @@ function mcEditionHtml(s) {
     <label class="field"><span>Message d'accueil</span>
       <input id="edAccTexte" type="text" maxlength="120" value="${escAttr(acc.texte || '')}" placeholder="Ça commence bientôt… ✨"></label>
     <div class="photo-line">
-      ${acc.photo ? `<img src="${escAttr(acc.photo)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
+      ${accPhoto ? `<img src="${escAttr(accPhoto)}" class="prog-photo" alt="">` : '<div class="prog-photo vide">🖼</div>'}
       <span class="muted small" style="flex:1">Grande image d'accueil</span>
       <input type="file" id="edAccPhoto" accept="image/*" style="display:none" onchange="edPhotoAccueil(this)">
       <button class="btn small" onclick="$('#edAccPhoto').click()">📷</button>
-      ${acc.photo ? `<button class="btn small ghost" onclick="edSaveAccueil(true)">🗑</button>` : ''}
+      ${accPhoto ? `<button class="btn small ghost" onclick="edSaveAccueil(true)">🗑</button>` : ''}
     </div>
     <button class="btn block" onclick="edSaveAccueil(false)">💾 Enregistrer l'accueil</button>
   </div>
@@ -77,11 +80,11 @@ function mcEditionHtml(s) {
     <hr class="ed-sep">
     <p class="muted small">🌌 Fond d'écran de l'entracte (derrière le nom de l'artiste) :</p>
     <div class="photo-line">
-      ${s.entracteFond ? `<img src="${escAttr(s.entracteFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌌</div>'}
+      ${entrFond ? `<img src="${escAttr(entrFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌌</div>'}
       <span class="muted small" style="flex:1"></span>
       <input type="file" id="edFond" accept="image/*" style="display:none" onchange="edPhotoFond(this)">
       <button class="btn small" onclick="$('#edFond').click()">📷</button>
-      ${s.entracteFond ? `<button class="btn icon small" onclick="edRemoveFond()">🗑</button>` : ''}
+      ${entrFond ? `<button class="btn icon small" onclick="edRemoveFond()">🗑</button>` : ''}
     </div>
   </div>
 
@@ -91,11 +94,11 @@ function mcEditionHtml(s) {
     <label class="field"><span>Message de remerciement</span>
       <input id="edFinTexte" type="text" maxlength="120" value="${escAttr(fin.texte || '')}" placeholder="Merci à toutes et tous ! ❤️"></label>
     <div class="photo-line">
-      ${fin.fond ? `<img src="${escAttr(fin.fond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌠</div>'}
+      ${finFond ? `<img src="${escAttr(finFond)}" class="prog-photo large" alt="">` : '<div class="prog-photo vide">🌠</div>'}
       <span class="muted small" style="flex:1">Image de fond (optionnelle)</span>
       <input type="file" id="edFinFond" accept="image/*" style="display:none" onchange="edPhotoFinFond(this)">
       <button class="btn small" onclick="$('#edFinFond').click()">📷</button>
-      ${fin.fond ? `<button class="btn icon small" onclick="edRemoveFinFond()">🗑</button>` : ''}
+      ${finFond ? `<button class="btn icon small" onclick="edRemoveFinFond()">🗑</button>` : ''}
     </div>
     <p class="muted small">Liens réseaux (affichés sur l'écran de fin) :</p>
     <div id="edLiensList">
@@ -275,12 +278,14 @@ function edRemoveDeco(position) {
 async function edPhotoFond(input) {
   const data = await compressImage(input.files[0], FOND_MAX_DIM, FOND_QUALITY);
   if (!data) return;
-  soireeUpdate({ entracteFond: data });
+  await mediaSet('entracteFond', data);
+  soireeUpdate({ entracteFond: '' }); // vide l'ancien stockage inline
   toast('Fond d\'entracte mis à jour 🌌');
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
 }
 function edRemoveFond() {
+  mediaDel('entracteFond');
   soireeUpdate({ entracteFond: '' });
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
@@ -290,12 +295,14 @@ function edRemoveFond() {
 async function edPhotoFinFond(input) {
   const data = await compressImage(input.files[0], FOND_MAX_DIM, FOND_QUALITY);
   if (!data) return;
-  soireeUpdate({ 'ecrans.fin.fond': data });
+  await mediaSet('finFond', data);
+  soireeUpdate({ 'ecrans.fin.fond': '' }); // vide l'ancien stockage inline
   toast('Fond de l\'écran de fin mis à jour 🌠');
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
 }
 function edRemoveFinFond() {
+  mediaDel('finFond');
   soireeUpdate({ 'ecrans.fin.fond': '' });
   editionRendered = false;
   setTimeout(() => { if (S.mcTab === 'edition' && S.soiree) renderMC(S.soiree, null); }, 600);
@@ -362,14 +369,15 @@ async function edSonReset(name) {
 // ---------- Écran d'accueil ----------
 let edAccPhotoData = null; // photo en attente d'enregistrement
 async function edPhotoAccueil(input) {
-  // Grande image d'accueil : compressée en haute définition (pour remplir l'écran sans flou)
-  const data = await compressImage(input.files[0], 1600, 0.7);
+  // Grande image d'accueil HD (stockée dans son propre espace → peut être lourde sans saturer la soirée)
+  const data = await compressImage(input.files[0], 1920, 0.78);
   if (data) { edAccPhotoData = data; toast('Photo prête — pense à Enregistrer.'); }
 }
 function edSaveAccueil(retirerPhoto) {
-  const s = S.soiree;
-  const photo = retirerPhoto ? '' : (edAccPhotoData || ((s.ecrans && s.ecrans.accueil) || {}).photo || '');
-  soireeUpdate({ 'ecrans.accueil': { texte: $('#edAccTexte').value.trim(), photo } });
+  // L'image va dans son propre espace (médias) ; la fiche soirée ne garde que le texte
+  soireeUpdate({ 'ecrans.accueil': { texte: $('#edAccTexte').value.trim(), photo: '' } });
+  if (retirerPhoto) mediaDel('accueil');
+  else if (edAccPhotoData) mediaSet('accueil', edAccPhotoData);
   edAccPhotoData = null;
   editionRendered = false;
   toast('Écran d\'accueil enregistré ✨');
@@ -507,8 +515,9 @@ function compressImage(file, maxDim, quality) {
       const cv = document.createElement('canvas');
       cv.width = w; cv.height = h;
       cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      const data = cv.toDataURL('image/jpeg', quality);
-      if (data.length > PHOTO_WARN_BYTES * 1.37 * (maxDim / PHOTO_MAX_DIM)) toast('Photo lourde — elle est gardée mais évite d\'en mettre trop.');
+      // Une image doit tenir dans son document (< 1 Mo) : on baisse la qualité si besoin
+      let q = quality, data = cv.toDataURL('image/jpeg', q);
+      while (data.length > 950000 && q > 0.35) { q -= 0.12; data = cv.toDataURL('image/jpeg', q); }
       resolve(data);
     };
     img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };

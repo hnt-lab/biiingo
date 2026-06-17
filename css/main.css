@@ -172,7 +172,7 @@ a { color: var(--rose); }
    height (et pas max-height) FORCE la taille d'affichage, même pour une image peu définie. */
 .salle-accueil { gap: 2vh; padding: 2vh 3vw; }
 .salle-accueil .salle-photo {
-  height: 74vh; width: auto; max-width: 90vw;
+  height: 82vh; width: auto; max-width: 92vw;
   flex-shrink: 0; object-fit: contain;
 }
 .salle-accueil .salle-titre-event { font-size: clamp(1.4em, 4.5vw, 3em); }
@@ -444,19 +444,21 @@ a { color: var(--rose); }
 /* ----- Bandeau défilant ----- */
 .bandeau {
   position: absolute; left: 0; right: 0; bottom: 0; height: 0; overflow: hidden;
-  background: linear-gradient(90deg, #b3457e, #7e3a9e); z-index: 30;
+  background: linear-gradient(135deg, var(--or), var(--rose)); z-index: 30; /* même couleur que les cases sorties */
   display: flex; align-items: center; transition: height .3s;
-  border-top: 0 solid var(--or); border-bottom: 0 solid var(--or);
+  border-top: 0 solid #ffffff66; border-bottom: 0 solid #ffffff66;
 }
 .bandeau.show {
   border-top-width: 3px; border-bottom-width: 3px;
-  box-shadow: 0 -4px 18px #e8c55833;
+  box-shadow: 0 -4px 18px #e8c55844;
 }
 .bandeau.show { height: clamp(38px, 6.5vh, 64px); }
 .bandeau-piste { display: flex; white-space: nowrap; animation: defile 22s linear infinite; }
-.bandeau-piste span {
-  font-size: clamp(1em, 3.6vh, 1.7em); font-weight: 600; color: #fff; padding: 0 6vw;
+.bandeau-piste > span {
+  font-size: clamp(1em, 3.6vh, 1.7em); font-weight: 700; color: #fff;
+  text-shadow: 0 1px 3px #0007; padding: 0 4vw;
 }
+.bandeau-sep { padding: 0 4vw; opacity: .85; }
 @keyframes defile { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
 /* ============================================================

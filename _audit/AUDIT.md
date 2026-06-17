@@ -130,6 +130,15 @@
 - v0.9.1 insuffisant : `max-height` ne fait que limiter, jamais agrandir → l'image restait à sa taille native.
 - Fix : `.salle-accueil .salle-photo { height: 74vh; width: auto; max-width: 90vw; flex-shrink: 0; object-fit: contain; }` → la hauteur d'affichage est FORCÉE (≈ 75 % de l'écran) quelle que soit la résolution source. Compression accueil montée à 1600px pour rester net sur projecteur.
 
+## 2026-06-12 — v0.10.0 : images hors fiche soirée (fix limite 1 Mo) + accueil HD + bandeau
+- **Cause de l'erreur « réseau » à l'upload = limite 1 Mo/document Firestore** (confirmée avec l'utilisateur). Toutes les images étaient empilées dans la fiche soirée.
+- **Refonte stockage** : nouvelle collection `medias` (1 doc par image, clé `{soireeId}__{key}`). Les 3 grandes images plein écran (accueil, entracteFond, finFond) y sont déplacées → la fiche soirée redevient légère + chaque image a son propre budget. `mediaGet/mediaSet/mediaDel` (core.js), abonnement temps réel `S.medias`, repli sur l'ancien champ inline (compat soirées existantes ; re-sauver vide l'inline). Nettoyage des médias à la suppression de soirée. Règle Firestore `medias` ajoutée (À REPUBLIER).
+- **Accueil HD** : compression 1920px q0.78 (son propre doc → peut être lourd), affichage `height: 82vh` (≈ image dominante).
+- Compression : baisse auto de qualité si une image dépasse ~950 Ko (tient dans son doc).
+- **Bandeau** : fond = dégradé or→rose (couleur des cases) + texte blanc ombré ; séparateur ✦ entre deux passages du message.
+- (Restent inline, plus petits : photos d'artistes, déco, PNG d'animation — à migrer aussi si la fiche regrossit.)
+- `node --check` : 13/13 OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
