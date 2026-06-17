@@ -49,10 +49,17 @@ function showScreen(id) {
   $('#' + id).classList.add('active');
 }
 
-// Recharge l'app (utile en mode installé sur téléphone : pas de barre d'adresse pour F5)
+// Recharge l'app en forçant une version fraîche (contourne le cache du navigateur/GitHub Pages).
+// Indispensable en mode installé (pas de barre d'adresse) : recharge index.html via une URL neuve,
+// qui re-télécharge alors les fichiers CSS/JS versionnés à jour.
 function appReload() {
-  toast('Rechargement…');
-  setTimeout(() => { try { location.reload(); } catch (e) { location.href = location.href; } }, 150);
+  toast('Mise à jour…');
+  setTimeout(() => {
+    try {
+      const base = location.href.split('?')[0].split('#')[0];
+      location.replace(base + '?u=' + Date.now());
+    } catch (e) { location.reload(); }
+  }, 150);
 }
 
 // ---------- Accueil (après connexion) ----------

@@ -11,7 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biiingo">
-  <link rel="stylesheet" href="css/main.css">
+  <!-- Anti-cache : version des fichiers bumpée à chaque déploiement (BUILD) -->
+  <script>window.__B='0.11.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
+  <noscript><link rel="stylesheet" href="css/main.css"></noscript>
 </head>
 <body>
 
@@ -97,18 +99,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <!-- Application (scripts séquentiels) -->
-  <script src="js/version.js"></script>
-  <script src="js/config.js"></script>
-  <script src="js/sons.js"></script>
-  <script src="js/firebase.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/core.js"></script>
-  <script src="js/anims.js"></script>
-  <script src="js/salle.js"></script>
-  <script src="js/verification.js"></script>
-  <script src="js/mc.js"></script>
-  <script src="js/editeur.js"></script>
-  <script src="js/tuto.js"></script>
+  <!-- Application (scripts séquentiels, versionnés anti-cache) -->
+  <script>
+    (function () {
+      var files = ['version', 'config', 'sons', 'firebase', 'auth', 'core', 'anims', 'salle', 'verification', 'mc', 'editeur', 'tuto'];
+      for (var i = 0; i < files.length; i++) {
+        document.write('<script src="js/' + files[i] + '.js?v=' + window.__B + '"><\/script>');
+      }
+    })();
+  </script>
 </body>
 </html>

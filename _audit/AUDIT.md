@@ -142,6 +142,13 @@
 ## 2026-06-12 — v0.10.1 : couleur du bandeau corrigée
 - Malentendu : « même couleur que les cases » = cases NON sorties (violet/prune par défaut), pas le doré. Bandeau → fond `var(--bg2)` + bord `var(--bord)` (identique aux cases vides), texte clair, séparateur ✦ rose.
 
+## 2026-06-12 — v0.11.0 : anti-cache (les MAJ ne s'appliquaient pas !) + plafond de vérification
+- **CAUSE des « pas de changement »** : cache HTTP du navigateur/GitHub Pages (~10 min) sur css/js. Le reload normal ne re-téléchargeait pas → l'utilisateur voyait l'ancienne version (image accueil, bandeau inchangés).
+- **Fix anti-cache** : CSS + tous les JS chargés avec `?v=__B` (document.write dans index.html). `window.__B` à bumper À CHAQUE DÉPLOIEMENT (en même temps que APP_VERSION). Bouton 🔄 → `location.replace(base + '?u=' + Date.now())` force un index.html frais → re-télécharge les assets versionnés.
+  - ⚠️ RÈGLE DEPLOIEMENT : bumper `version.js` APP_VERSION **ET** `index.html` window.__B ensemble.
+- **Vérification plafonnée** : on ne peut pointer que le nombre requis (quine 5 / double 10 / carton 15) — au-delà, tap bloqué + toast, cases non pointées grisées. Quand le compte est atteint : **bannière qui surgit** — verte « 🏆 Valider la victoire » si tout est sorti, rouge « Faux bingo » sinon. (VERIF_BESOIN)
+- `node --check` : 13/13 OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
