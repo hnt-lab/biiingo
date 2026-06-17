@@ -121,6 +121,11 @@
 - **Pas de vérification en mode lose** : la mort subite n'a pas de carton → onglet Vérif remplacé par « 🏆 Déclarer le·a survivant·e » (nom + bouton, déclenche l'animation GAGNÉ + Hall of Fame). verifLoseWin().
 - `node --check` : 13/13 OK.
 
+## 2026-06-12 — v0.9.2 : icône déconnexion + bouton recharger
+- Icône déconnexion ⏻ (mal rendue sur Android) → 🚪.
+- **Bouton 🔄 Recharger / mettre à jour** : en-tête accueil + onglet ⚙️ Soirée (avec n° de version affiché). Indispensable en mode app installée (standalone) où il n'y a pas de barre d'adresse pour faire F5. `appReload()` = location.reload().
+- `node --check` : OK.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

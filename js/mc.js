@@ -214,6 +214,8 @@ function mcSoireeHtml(s) {
   <div class="soiree-bloc">
     <h3 class="mc-h3">📖 Aide</h3>
     <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>
+    <button class="btn block" onclick="appReload()">🔄 Recharger / mettre à jour l'app</button>
+    <p class="muted small" style="text-align:center;margin-top:6px">Biiingo v${APP_VERSION}</p>
   </div>
   <div class="soiree-bloc">
     ${s.statut === 'active'
