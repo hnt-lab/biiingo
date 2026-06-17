@@ -54,8 +54,11 @@ function mcVerifHtml(s) {
   }
 
   // Vérification en cours → grille de pointage
-  let cells = '';
   const coches = v.coches || [];
+  const besoin = VERIF_BESOIN[s.objectif] || 5;
+  const complet = coches.length >= besoin;
+  const toutSorti = complet && coches.every(n => s.tires.includes(n));
+  let cells = '';
   for (let n = 1; n <= NB_NUMEROS; n++) {
     const tire = s.tires.includes(n);
     const coche = coches.includes(n);
@@ -65,16 +68,29 @@ function mcVerifHtml(s) {
   }
   const nbKo = coches.filter(n => !s.tires.includes(n)).length;
   const cible = v.gagnantNom ? ' de <b>' + esc(v.gagnantNom) + '</b>' : ' du joueur';
+  // Bouton qui surgit quand le compte requis est atteint
+  let cta = '';
+  if (complet) {
+    cta = toutSorti
+      ? `<div class="verif-cta win"><span>✨ Carton complet et tout est sorti !</span>
+           <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`
+      : `<div class="verif-cta lose"><span>💋 ${nbKo} numéro(s) pas sorti(s)…</span>
+           <button class="btn ko big" onclick="verifVerdictFaux()">Faux bingo</button></div>`;
+  }
   return `
   <div class="mc-alerte">${v.suspense ? '🥁' : '🔍'} Appuie sur les numéros du carton${cible}
-    <span class="verif-bilan">${coches.length} pointé(s)${nbKo ? ` · <span class="ko-txt">${nbKo} pas sorti(s) !</span>` : ''}</span></div>
-  <div class="mc-grille">${cells}</div>
+    <span class="verif-bilan ${complet ? 'complet' : ''}">${coches.length} / ${besoin}${nbKo ? ` · <span class="ko-txt">${nbKo} pas sorti(s) !</span>` : ''}</span></div>
+  ${cta}
+  <div class="mc-grille ${complet ? 'verif-locked' : ''}">${cells}</div>
   <div class="mc-actions-row verdict-row">
     <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
     <button class="btn ko" onclick="verifVerdictFaux()">💋 Faux bingo</button>
     <button class="btn ok" onclick="verifConfirmGagne()">✨ GAGNÉ</button>
   </div>`;
 }
+
+// Nombre de cases à pointer selon l'objectif (1 ligne = 5, 2 lignes = 10, carton = 15)
+const VERIF_BESOIN = { quine: 5, double: 10, carton: 15 };
 
 function verifStart() {
   const suspense = $('#verifSuspense').checked;
@@ -86,10 +102,16 @@ function verifStart() {
 }
 
 function verifTap(n) {
-  const v = S.soiree.verification || {};
+  const s = S.soiree;
+  const v = s.verification || {};
   const coches = v.coches || [];
-  if (coches.includes(n)) soireeUpdate({ 'verification.coches': FV.arrayRemove(n) });
-  else soireeUpdate({ 'verification.coches': FV.arrayUnion(n) });
+  if (coches.includes(n)) { soireeUpdate({ 'verification.coches': FV.arrayRemove(n) }); return; }
+  const besoin = VERIF_BESOIN[s.objectif] || 5;
+  if (coches.length >= besoin) {
+    toast(`${besoin} cases suffisent pour ${(OBJECTIFS[s.objectif] || {}).label || 'cet objectif'} (retire-en une d'abord).`);
+    return;
+  }
+  soireeUpdate({ 'verification.coches': FV.arrayUnion(n) });
 }
 
 function verifCancel() {
