@@ -218,9 +218,13 @@ function salleSetDeco(id, photo) {
 // ---------- État : VÉRIFICATION ----------
 function salleVerifHtml(s) {
   const v = s.verification || {};
+  const lose = s.objectif === 'lose';
   const coches = v.coches || [];
-  const chips = coches.map(n =>
-    `<span class="verif-chip ${s.tires.includes(n) ? 'ok' : 'ko'}">${n}</span>`).join('');
+  // normal : sorti = vert ; lose : non sorti = vert (ces numéros ne sont pas éliminatoires)
+  const chips = coches.map(n => {
+    const bon = lose ? !s.tires.includes(n) : s.tires.includes(n);
+    return `<span class="verif-chip ${bon ? 'ok' : 'ko'}">${n}</span>`;
+  }).join('');
   const animCls = v.verdict ? 'anim-' + AnimVerdict.styleCourant : '';
   let verdict = '';
   if (v.verdict === 'gagne') {
