@@ -597,6 +597,20 @@ a { color: var(--rose); }
 .verif-cta.lose { background: #5d2330; border: 1px solid var(--ko); }
 .verif-cta .btn.big { width: 100%; }
 @keyframes ctaPop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+/* Barre d'action flottante : collée en bas (zone du pouce), au-dessus des onglets, grille visible au-dessus */
+.verif-cta.float {
+  position: fixed; left: 10px; right: 10px;
+  bottom: calc(env(safe-area-inset-bottom) + 70px);
+  z-index: 60; margin: 0;
+  box-shadow: 0 8px 28px #000b;
+  animation: ctaPop .3s cubic-bezier(.2,1.5,.4,1), ctaGlow 1.5s ease-in-out infinite;
+}
+.verif-cta.float.win { animation: ctaPop .3s cubic-bezier(.2,1.5,.4,1), ctaGlowWin 1.5s ease-in-out infinite; }
+.verif-cta.float span { font-weight: 700; }
+.verif-float-spacer { height: 120px; }
+@keyframes ctaGlow { 0%,100% { box-shadow: 0 8px 22px #000b; } 50% { box-shadow: 0 8px 30px #ff5f6b88; } }
+@keyframes ctaGlowWin { 0%,100% { box-shadow: 0 8px 22px #000b; } 50% { box-shadow: 0 8px 32px #4cd98a99; } }
 .verif-bilan.complet { color: var(--ok); font-weight: 700; }
 .verif-hint { text-align: center; margin: 0 0 10px; }
 /* Même grille verrouillée, une case déjà pointée reste bien cliquable (pour corriger) */
@@ -638,6 +652,8 @@ a { color: var(--rose); }
 .tg-cell.lit { background: linear-gradient(135deg, var(--or), var(--rose)); color: #fff; border-color: transparent; }
 .tg-cell.coche-ok { background: #1d5a39; border-color: var(--ok); color: #b8ffd9; }
 .tg-cell.coche-ko { background: #5d2330; border-color: var(--ko); color: #ffc4c9; }
+.tg-cell.lose { background: linear-gradient(135deg, #ff5f6b, #8c1020); border-color: transparent; }
+.tg-flow { font-size: 1.5em; font-weight: 700; letter-spacing: .04em; }
 .tg-titre { text-align: center; margin: 6px 0 10px; }
 .tg-texte { line-height: 1.55; font-size: .95em; color: var(--texte); }
 .tg-texte b { color: var(--or); }

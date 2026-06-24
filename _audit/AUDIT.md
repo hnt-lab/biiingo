@@ -156,6 +156,11 @@
 - **Message du bas page de fin** : bandeau défilant désormais affiché aussi sur l'écran de fin (avant : entracte + partie seulement). *(Interprétation de « message du bas pas codé » — à confirmer.)*
 - `node --check` : 13/13 OK. __B + APP_VERSION bumpés (0.12.0).
 
+## 2026-06-25 — v0.13.0 : bouton validation flottant + tuto refait
+- **Vérif — barre d'action flottante (hybride)** : le CTA de validation/faux n'est plus en haut (scroll requis sur mobile) mais une **barre fixée en bas** (au-dessus des onglets, zone du pouce), avec halo pulsé (vert si victoire, rouge sinon). La grille reste visible au-dessus (correction sans rien fermer). Spacer ajouté pour le scroll. `.verif-cta.float`.
+- **Tuto refait en visite guidée complète (10 étapes)** : principe, lancer+code, tirage, objectifs **+ mort subite**, vérification (plafond/correction/bouton flottant + lose inversée), entracte, hall of fame & fin, édition par étapes + présets, son (mute/volume/couper un son/clic activer), installer + 🔄. Nouveaux mockups (`.tg-cell.lose`, `.tg-flow`). Clé localStorage versionnée `biiingo_tuto_vu_v2` → se réaffiche une fois à tout le monde.
+- `node --check` : 13/13 OK. __B + APP_VERSION = 0.13.0.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
