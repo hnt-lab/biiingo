@@ -83,7 +83,10 @@ function renderSalle(s, prev) {
     const nc = (s.verification && s.verification.coches) || [];
     if (nc.length > pc.length) {
       const nouveau = nc[nc.length - 1];
-      Sons.play(s.tires.includes(nouveau) ? 'valid' : 'rate');
+      const drawn = s.tires.includes(nouveau);
+      // lose : le bon coup c'est un numéro PAS sorti → son de validation ; normal : l'inverse
+      const bon = lose ? !drawn : drawn;
+      Sons.play(bon ? 'valid' : 'rate');
     }
     const pSusp = prev.etat === 'verification' && prev.verification && prev.verification.suspense && !prev.verification.verdict;
     const nSusp = s.etat === 'verification' && s.verification && s.verification.suspense && !s.verification.verdict;

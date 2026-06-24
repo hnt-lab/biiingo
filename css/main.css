@@ -523,6 +523,9 @@ a { color: var(--rose); }
   color: #fff; border-color: transparent;
 }
 .mc-cell.verif.tire { border-color: var(--or); color: var(--or); }
+/* lose : numéros pas sortis = mis en avant (candidats valables) ; sortis = grisés (à éviter) */
+.mc-cell.verif.safe { border-color: var(--ok); color: var(--ok); }
+.mc-cell.verif.lose-danger { opacity: .4; }
 .mc-cell.verif.coche-ok { background: #1d5a39; border-color: var(--ok); color: #b8ffd9; }
 .mc-cell.verif.coche-ko { background: #5d2330; border-color: var(--ko); color: #ffc4c9; }
 
