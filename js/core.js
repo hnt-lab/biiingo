@@ -21,6 +21,17 @@ function esc(s) {
 }
 function escAttr(s) { return esc(s); }
 
+// Texte destiné à un titre en dégradé (background-clip:text) : on isole les emojis pour qu'ils
+// gardent leurs vraies couleurs au lieu d'être découpés en silhouette par le dégradé.
+let EMOJI_RE = null;
+try { EMOJI_RE = new RegExp('(\\p{Extended_Pictographic}(\\uFE0F|\\u200D\\p{Extended_Pictographic})*)', 'gu'); }
+catch (e) { EMOJI_RE = null; }
+function gradTxt(str) {
+  const s = esc(str);
+  if (!EMOJI_RE) return s;
+  return s.replace(EMOJI_RE, '<span class="emo">$1</span>');
+}
+
 function toast(msg) {
   const t = $('#toast');
   t.textContent = msg;

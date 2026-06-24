@@ -121,7 +121,7 @@ function renderSalle(s, prev) {
     }
   }
   else if (s.etat === 'entracte') c.innerHTML = salleEntracteHtml(s);
-  else if (s.etat === 'fin') { c.innerHTML = salleFinHtml(s); salleMakeQr(s); }
+  else if (s.etat === 'fin') { c.innerHTML = salleFinHtml(s); salleMakeQr(s); salleHofScroll(); }
 
   renderBandeau(s);
   salleUpdateReadyBtn();
@@ -134,7 +134,7 @@ function salleAccueilHtml(s) {
   return `
   <div class="salle-center salle-accueil">
     ${photo ? `<img class="salle-photo" src="${escAttr(photo)}" alt="">` : ''}
-    <h1 class="salle-titre-event">${esc(s.titre)}</h1>
+    <h1 class="salle-titre-event">${gradTxt(s.titre)}</h1>
     <p class="salle-soustitre">${e.texte ? esc(e.texte) : 'Ça commence bientôt… ✨'}</p>
     <div class="salle-dots"><span></span><span></span><span></span></div>
   </div>`;
@@ -221,10 +221,10 @@ function salleVerifHtml(s) {
   const animCls = v.verdict ? 'anim-' + AnimVerdict.styleCourant : '';
   let verdict = '';
   if (v.verdict === 'gagne') {
-    verdict = `<div class="verdict gagne ${animCls}"><div class="verdict-big">GAGNÉ&nbsp;!&nbsp;✨</div>
+    verdict = `<div class="verdict gagne ${animCls}"><div class="verdict-big">GAGNÉ&nbsp;!&nbsp;<span class="emo">✨</span></div>
       ${v.gagnantNom ? `<div class="verdict-nom">Bravo ${esc(v.gagnantNom)} 💖</div>` : '<div class="verdict-nom">Bravo ! 💖</div>'}</div>`;
   } else if (v.verdict === 'faux') {
-    verdict = `<div class="verdict faux ${animCls}"><div class="verdict-big">FAUX BINGO&nbsp;💋</div>
+    verdict = `<div class="verdict faux ${animCls}"><div class="verdict-big">FAUX BINGO&nbsp;<span class="emo">💋</span></div>
       <div class="verdict-nom">Il était moins une…</div></div>`;
   }
   return `
@@ -246,7 +246,7 @@ function salleEntracteHtml(s) {
   <div class="salle-center salle-entracte"${fond}>
     <div class="entracte-tag">🎭 Entracte</div>
     ${e.photo ? `<img class="salle-photo grande" src="${escAttr(e.photo)}" alt="">` : ''}
-    <h1 class="entracte-nom">${esc(e.nom || 'Place au spectacle !')}</h1>
+    <h1 class="entracte-nom">${gradTxt(e.nom || 'Place au spectacle !')}</h1>
     ${e.message ? `<p class="entracte-msg">${esc(e.message)}</p>` : ''}
   </div>`;
 }
@@ -258,12 +258,14 @@ function salleFinHtml(s) {
   const hofHtml = hof.length ? `
     <div class="hof">
       <h2>🏆 Hall of Fame de la soirée</h2>
-      <div class="hof-list">
+      <div class="hof-list" id="hofList">
+        <div class="hof-track" id="hofTrack">
         ${hof.map(g => {
           const obj = OBJECTIFS[g.objectif] || { label: g.objectif };
           return `<div class="hof-item"><span class="hof-nom">${esc(g.nom || 'Mystère')}</span>
                   <span class="hof-obj">${obj.label} · manche ${g.manche}</span></div>`;
         }).join('')}
+        </div>
       </div>
     </div>` : '';
   const liens = (e.liens || []).map(l =>
@@ -274,13 +276,30 @@ function salleFinHtml(s) {
     : '';
   return `
   <div class="salle-center salle-fin"${fond}>
-    <h1 class="salle-titre-event">${e.texte ? esc(e.texte) : 'Merci à toutes et tous ! ❤️'}</h1>
+    <h1 class="salle-titre-event">${e.texte ? gradTxt(e.texte) : gradTxt('Merci à toutes et tous ! ❤️')}</h1>
     ${hofHtml}
     <div class="fin-bas">
       <div class="fin-liens">${liens}</div>
       ${e.qrUrl ? '<div id="qrBox" class="qr-box"></div>' : ''}
     </div>
   </div>`;
+}
+
+// Hall of Fame : si plus de ~5 gagnants, défilement vertical aller-retour pour tous les voir
+function salleHofScroll() {
+  const list = $('#hofList'), track = $('#hofTrack');
+  if (!list || !track) return;
+  // Laisse le layout se faire, puis mesure le débordement
+  requestAnimationFrame(() => {
+    const over = track.scrollHeight - list.clientHeight;
+    if (over > 6) {
+      track.style.setProperty('--hofDist', over + 'px');
+      const dur = Math.max(10, Math.round(over / 22) + 6); // plus il y a de monde, plus c'est long
+      track.style.animation = `hofScroll ${dur}s ease-in-out infinite alternate`;
+    } else {
+      track.style.animation = 'none';
+    }
+  });
 }
 
 function salleMakeQr(s) {
@@ -299,7 +318,8 @@ function salleMakeQr(s) {
 // ---------- Bandeau défilant ----------
 function renderBandeau(s) {
   const b = s.bandeau || {};
-  const visible = !!b.texte && (s.etat === 'entracte' || (s.etat === 'tirage' && b.actif));
+  // Affiché : toujours pendant entracte et écran de fin ; pendant la partie si activé
+  const visible = !!b.texte && (s.etat === 'entracte' || s.etat === 'fin' || (s.etat === 'tirage' && b.actif));
   const el = $('#salleBandeau');
   el.classList.toggle('show', visible);
   $('#salleScreen').classList.toggle('bandeau-on', visible); // réserve la place (la grille n'est plus recouverte)

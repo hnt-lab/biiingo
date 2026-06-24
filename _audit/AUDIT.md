@@ -149,6 +149,13 @@
 - **Vérification plafonnée** : on ne peut pointer que le nombre requis (quine 5 / double 10 / carton 15) — au-delà, tap bloqué + toast, cases non pointées grisées. Quand le compte est atteint : **bannière qui surgit** — verte « 🏆 Valider la victoire » si tout est sorti, rouge « Faux bingo » sinon. (VERIF_BESOIN)
 - `node --check` : 13/13 OK.
 
+## 2026-06-13 — v0.12.0 : lot post-test réel (4 correctifs)
+- **Emojis cassés dans les titres en dégradé** : `background-clip:text` transformait les emojis en silhouette. Helper `gradTxt()` (core.js) qui isole les emojis dans `<span class="emo">` (-webkit-text-fill-color:initial). Appliqué à : titre accueil, nom entracte, message de fin, verdicts (✨/💋).
+- **Vérification spéciale « partie de la lose »** : remplace la déclaration directe. Logique INVERSÉE — on vérifie que le carton du survivant n'a AUCUN numéro sorti (sorti = rouge = éliminé, pas sorti = vert = sauvé). besoin lose = 15. CTA : « 💀 Éliminé » si un numéro sorti, « 🏆 Survivant·e confirmé·e » si carton complet sans aucun sorti. verifLoseWin supprimée.
+- **Hall of Fame** : ~5 visibles (max-height 42vh) + défilement vertical aller-retour auto (`salleHofScroll` mesure le débordement → anim `hofScroll` alternate, durée selon le nombre).
+- **Message du bas page de fin** : bandeau défilant désormais affiché aussi sur l'écran de fin (avant : entracte + partie seulement). *(Interprétation de « message du bas pas codé » — à confirmer.)*
+- `node --check` : 13/13 OK. __B + APP_VERSION bumpés (0.12.0).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
