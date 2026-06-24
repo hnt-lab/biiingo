@@ -2,36 +2,38 @@
 
 function mcVerifHtml(s) {
   const v = s.verification || {};
-  const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
+  const lose = s.objectif === 'lose';
 
-  // Mode « partie de la lose » : pas de carton à vérifier (mort subite) → on déclare le·a survivant·e
-  if (s.objectif === 'lose' && !v.verdict) {
-    const noms = Object.values(S.registre || {})
-      .sort((a, b) => (b.victoires || 0) - (a.victoires || 0)).slice(0, 50);
-    const datalist = noms.map(n => `<option value="${escAttr(n.nom)}"></option>`).join('');
+  // Verdict rendu → écran de reprise (commun)
+  if (v.verdict) {
+    const gagne = v.verdict === 'gagne';
+    const txt = gagne
+      ? (lose ? `🏆 Survivant·e${v.gagnantNom ? ' — ' + esc(v.gagnantNom) : ''} !` : `✨ GAGNÉ${v.gagnantNom ? ' — ' + esc(v.gagnantNom) : ''} !`)
+      : (lose ? '💀 Éliminé·e — un numéro était sorti !' : '💋 Faux bingo !');
     return `
     <div class="verif-intro">
-      <h3 class="mc-h3">💀 Mort subite</h3>
-      <p class="muted">Pas de carton à vérifier : dès qu'un numéro sort, ceux qui l'ont sont éliminés.
-      Quand il ne reste qu'une personne, déclare-la gagnante !</p>
-      <label class="field"><span>Nom du·de la survivant·e (pour le Hall of Fame — optionnel)</span>
-        <input id="loseNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
-        <datalist id="nomsConnus">${datalist}</datalist></label>
-      <button class="btn block primary big" onclick="verifLoseWin()">🏆 Déclarer le·a survivant·e</button>
+      <div class="verdict-mini ${gagne ? 'ok' : 'ko'}">${txt}</div>
+      <button class="btn block primary big" onclick="verifEnd()">▶ Reprendre la partie</button>
     </div>`;
   }
 
-  // Pas de vérification en cours → écran de lancement
+  // Écran de lancement (pas de vérif en cours)
   if (!v.active) {
     const noms = Object.values(S.registre || {})
       .sort((a, b) => (b.victoires || 0) - (a.victoires || 0)).slice(0, 50);
     const datalist = noms.map(n => `<option value="${escAttr(n.nom)}"></option>`).join('');
+    const intro = lose
+      ? `<h3 class="mc-h3">💀 Vérifier le·a survivant·e</h3>
+         <p class="muted">Mort subite : le·a survivant·e ne doit avoir <b>AUCUN</b> numéro sorti sur son carton.
+         Lance la vérification, puis appuie sur les numéros de son carton :
+         <span class="ok-txt">vert</span> = pas sorti (sauvé), <span class="ko-txt">rouge</span> = sorti (éliminé !).</p>`
+      : `<h3 class="mc-h3">🔍 Vérifier un carton</h3>
+         <p class="muted">Note son nom, lance la vérification, puis appuie sur les numéros de SON carton :
+         <span class="ok-txt">vert</span> = sorti, <span class="ko-txt">rouge</span> = pas sorti…</p>`;
     return `
     <div class="verif-intro">
-      <h3 class="mc-h3">🔍 Vérifier un carton</h3>
-      <p class="muted">Quelqu'un a crié « ${obj.label} ! » ? Note son nom, lance la vérification, puis appuie sur
-      les numéros de SON carton : <span class="ok-txt">vert</span> = sorti, <span class="ko-txt">rouge</span> = pas sorti…</p>
-      <label class="field"><span>Nom du joueur (pour le Hall of Fame — optionnel)</span>
+      ${intro}
+      <label class="field"><span>Nom ${lose ? 'du·de la survivant·e' : 'du joueur'} (Hall of Fame — optionnel)</span>
         <input id="verifNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
         <datalist id="nomsConnus">${datalist}</datalist></label>
       <label class="check-line">
@@ -42,55 +44,62 @@ function mcVerifHtml(s) {
     </div>`;
   }
 
-  // Verdict rendu → écran de reprise
-  if (v.verdict) {
-    return `
-    <div class="verif-intro">
-      <div class="verdict-mini ${v.verdict === 'gagne' ? 'ok' : 'ko'}">
-        ${v.verdict === 'gagne' ? `✨ GAGNÉ${v.gagnantNom ? ' — ' + esc(v.gagnantNom) : ''} !` : '💋 Faux bingo !'}
-      </div>
-      <button class="btn block primary big" onclick="verifEnd()">▶ Reprendre la partie</button>
-    </div>`;
-  }
-
   // Vérification en cours → grille de pointage
   const coches = v.coches || [];
   const besoin = VERIF_BESOIN[s.objectif] || 5;
   const complet = coches.length >= besoin;
-  const toutSorti = complet && coches.every(n => s.tires.includes(n));
+  // En mode lose, le danger c'est qu'un numéro pointé SOIT sorti (l'inverse du jeu normal)
+  const nbSortis = coches.filter(n => s.tires.includes(n)).length;        // mauvais en lose
+  const nbPasSortis = coches.length - nbSortis;                            // mauvais en normal
   let cells = '';
   for (let n = 1; n <= NB_NUMEROS; n++) {
     const tire = s.tires.includes(n);
     const coche = coches.includes(n);
     let cls = tire ? 'tire' : '';
-    if (coche) cls = tire ? 'coche-ok' : 'coche-ko';
+    if (coche) {
+      // normal : sorti = vert (ok) ; lose : sorti = rouge (éliminé)
+      const bon = lose ? !tire : tire;
+      cls = bon ? 'coche-ok' : 'coche-ko';
+    }
     cells += `<button class="mc-cell verif ${cls}" onclick="verifTap(${n})">${n}</button>`;
   }
-  const nbKo = coches.filter(n => !s.tires.includes(n)).length;
-  const cible = v.gagnantNom ? ' de <b>' + esc(v.gagnantNom) + '</b>' : ' du joueur';
-  // Bouton qui surgit quand le compte requis est atteint
+  const cible = v.gagnantNom ? ' de <b>' + esc(v.gagnantNom) + '</b>' : (lose ? ' du·de la survivant·e' : ' du joueur');
+
+  // Bandeau d'action selon le mode
   let cta = '';
-  if (complet) {
-    cta = toutSorti
+  if (lose) {
+    if (nbSortis > 0) {
+      cta = `<div class="verif-cta lose"><span>💀 ${nbSortis} numéro(s) sorti(s) — il·elle aurait dû perdre !</span>
+        <button class="btn ko big" onclick="verifVerdictFaux()">Éliminé·e</button></div>`;
+    } else if (complet) {
+      cta = `<div class="verif-cta win"><span>✨ Carton complet, aucun numéro sorti !</span>
+        <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Survivant·e confirmé·e</button></div>`;
+    }
+  } else if (complet) {
+    cta = nbPasSortis === 0
       ? `<div class="verif-cta win"><span>✨ Carton complet et tout est sorti !</span>
            <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`
-      : `<div class="verif-cta lose"><span>💋 ${nbKo} numéro(s) pas sorti(s)…</span>
+      : `<div class="verif-cta lose"><span>💋 ${nbPasSortis} numéro(s) pas sorti(s)…</span>
            <button class="btn ko big" onclick="verifVerdictFaux()">Faux bingo</button></div>`;
   }
+
+  const bilan = lose
+    ? `${coches.length} / ${besoin}${nbSortis ? ` · <span class="ko-txt">${nbSortis} sorti(s) !</span>` : ''}`
+    : `${coches.length} / ${besoin}${nbPasSortis ? ` · <span class="ko-txt">${nbPasSortis} pas sorti(s) !</span>` : ''}`;
   return `
-  <div class="mc-alerte">${v.suspense ? '🥁' : '🔍'} Appuie sur les numéros du carton${cible}
-    <span class="verif-bilan ${complet ? 'complet' : ''}">${coches.length} / ${besoin}${nbKo ? ` · <span class="ko-txt">${nbKo} pas sorti(s) !</span>` : ''}</span></div>
+  <div class="mc-alerte">${v.suspense ? '🥁' : (lose ? '💀' : '🔍')} Appuie sur les numéros du carton${cible}
+    <span class="verif-bilan ${complet ? 'complet' : ''}">${bilan}</span></div>
   ${cta}
   <div class="mc-grille ${complet ? 'verif-locked' : ''}">${cells}</div>
   <div class="mc-actions-row verdict-row">
     <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
-    <button class="btn ko" onclick="verifVerdictFaux()">💋 Faux bingo</button>
-    <button class="btn ok" onclick="verifConfirmGagne()">✨ GAGNÉ</button>
+    <button class="btn ko" onclick="verifVerdictFaux()">${lose ? '💀 Éliminé' : '💋 Faux bingo'}</button>
+    <button class="btn ok" onclick="verifConfirmGagne()">${lose ? '🏆 Survivant' : '✨ GAGNÉ'}</button>
   </div>`;
 }
 
-// Nombre de cases à pointer selon l'objectif (1 ligne = 5, 2 lignes = 10, carton = 15)
-const VERIF_BESOIN = { quine: 5, double: 10, carton: 15 };
+// Nombre de cases à pointer (quine 5, double 10, carton 15, lose = carton complet 15)
+const VERIF_BESOIN = { quine: 5, double: 10, carton: 15, lose: 15 };
 
 function verifStart() {
   const suspense = $('#verifSuspense').checked;
@@ -164,20 +173,4 @@ function verifConfirmGagne() {
 
 function verifEnd() {
   soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' } });
-}
-
-// Mode lose : déclaration directe du·de la survivant·e (déclenche l'animation GAGNÉ)
-function verifLoseWin() {
-  const s = S.soiree;
-  const nom = (($('#loseNom') && $('#loseNom').value) || '').trim();
-  const entry = { nom, objectif: 'lose', manche: s.manche, ts: Date.now() };
-  soireeUpdate({
-    etat: 'verification',
-    verification: { active: true, suspense: false, coches: [], verdict: 'gagne', gagnantNom: nom },
-    hallOfFame: FV.arrayUnion(entry)
-  });
-  if (nom) saveWinnerToRegistre(nom);
-  toast('Survivant·e déclaré·e ! 💀🏆');
-  S.mcTab = 'tirage';
-  verifProgrammerRetour();
 }
