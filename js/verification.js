@@ -55,11 +55,17 @@ function mcVerifHtml(s) {
   for (let n = 1; n <= NB_NUMEROS; n++) {
     const tire = s.tires.includes(n);
     const coche = coches.includes(n);
-    let cls = tire ? 'tire' : '';
+    let cls;
     if (coche) {
       // normal : sorti = vert (ok) ; lose : sorti = rouge (éliminé)
       const bon = lose ? !tire : tire;
       cls = bon ? 'coche-ok' : 'coche-ko';
+    } else if (lose) {
+      // lose : on met en avant les numéros PAS encore tirés (les bons), on grise les sortis
+      cls = tire ? 'lose-danger' : 'safe';
+    } else {
+      // normal : on met en avant les numéros sortis
+      cls = tire ? 'tire' : '';
     }
     cells += `<button class="mc-cell verif ${cls}" onclick="verifTap(${n})">${n}</button>`;
   }
