@@ -71,21 +71,21 @@ function mcVerifHtml(s) {
   }
   const cible = v.gagnantNom ? ' de <b>' + esc(v.gagnantNom) + '</b>' : (lose ? ' du·de la survivant·e' : ' du joueur');
 
-  // Bandeau d'action selon le mode
+  // Barre d'action FLOTTANTE en bas (toujours visible, sans scroller) qui surgit au bon moment
   let cta = '';
   if (lose) {
     if (nbSortis > 0) {
-      cta = `<div class="verif-cta lose"><span>💀 ${nbSortis} numéro(s) sorti(s) — il·elle aurait dû perdre !</span>
+      cta = `<div class="verif-cta float lose"><span>💀 ${nbSortis} numéro(s) sorti(s) — il·elle aurait dû perdre !</span>
         <button class="btn ko big" onclick="verifVerdictFaux()">Éliminé·e</button></div>`;
     } else if (complet) {
-      cta = `<div class="verif-cta win"><span>✨ Carton complet, aucun numéro sorti !</span>
+      cta = `<div class="verif-cta float win"><span>✨ Carton complet, aucun numéro sorti !</span>
         <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Survivant·e confirmé·e</button></div>`;
     }
   } else if (complet) {
     cta = nbPasSortis === 0
-      ? `<div class="verif-cta win"><span>✨ Carton complet et tout est sorti !</span>
+      ? `<div class="verif-cta float win"><span>✨ Carton complet et tout est sorti !</span>
            <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`
-      : `<div class="verif-cta lose"><span>💋 ${nbPasSortis} numéro(s) pas sorti(s)…</span>
+      : `<div class="verif-cta float lose"><span>💋 ${nbPasSortis} numéro(s) pas sorti(s)…</span>
            <button class="btn ko big" onclick="verifVerdictFaux()">Faux bingo</button></div>`;
   }
 
@@ -96,13 +96,14 @@ function mcVerifHtml(s) {
   <div class="mc-alerte">${v.suspense ? '🥁' : (lose ? '💀' : '🔍')} Appuie sur les numéros du carton${cible}
     <span class="verif-bilan ${complet ? 'complet' : ''}">${bilan}</span></div>
   <p class="verif-hint muted small">↩ Tu peux ré-appuyer sur une case pour la corriger à tout moment.</p>
-  ${cta}
   <div class="mc-grille ${complet ? 'verif-locked' : ''}">${cells}</div>
   <div class="mc-actions-row verdict-row">
     <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
     <button class="btn ko" onclick="verifVerdictFaux()">${lose ? '💀 Éliminé' : '💋 Faux bingo'}</button>
     <button class="btn ok" onclick="verifConfirmGagne()">${lose ? '🏆 Survivant' : '✨ GAGNÉ'}</button>
-  </div>`;
+  </div>
+  ${cta ? '<div class="verif-float-spacer"></div>' : ''}
+  ${cta}`;
 }
 
 // Nombre de cases à pointer (quine 5, double 10, carton 15, lose = carton complet 15)
