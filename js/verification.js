@@ -95,6 +95,7 @@ function mcVerifHtml(s) {
   return `
   <div class="mc-alerte">${v.suspense ? '🥁' : (lose ? '💀' : '🔍')} Appuie sur les numéros du carton${cible}
     <span class="verif-bilan ${complet ? 'complet' : ''}">${bilan}</span></div>
+  <p class="verif-hint muted small">↩ Tu peux ré-appuyer sur une case pour la corriger à tout moment.</p>
   ${cta}
   <div class="mc-grille ${complet ? 'verif-locked' : ''}">${cells}</div>
   <div class="mc-actions-row verdict-row">
