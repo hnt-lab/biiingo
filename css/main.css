@@ -598,6 +598,10 @@ a { color: var(--rose); }
 .verif-cta .btn.big { width: 100%; }
 @keyframes ctaPop { 0% { transform: scale(.85); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 .verif-bilan.complet { color: var(--ok); font-weight: 700; }
+.verif-hint { text-align: center; margin: 0 0 10px; }
+/* Même grille verrouillée, une case déjà pointée reste bien cliquable (pour corriger) */
+.mc-grille.verif-locked .mc-cell.verif.coche-ok,
+.mc-grille.verif-locked .mc-cell.verif.coche-ko { opacity: 1; cursor: pointer; }
 /* Quand le compte est atteint, les cases non pointées sont grisées (on ne peut plus en ajouter) */
 .mc-grille.verif-locked .mc-cell.verif:not(.coche-ok):not(.coche-ko) { opacity: .35; }
 
