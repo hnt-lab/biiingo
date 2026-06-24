@@ -161,6 +161,9 @@
 - **Tuto refait en visite guidée complète (10 étapes)** : principe, lancer+code, tirage, objectifs **+ mort subite**, vérification (plafond/correction/bouton flottant + lose inversée), entracte, hall of fame & fin, édition par étapes + présets, son (mute/volume/couper un son/clic activer), installer + 🔄. Nouveaux mockups (`.tg-cell.lose`, `.tg-flow`). Clé localStorage versionnée `biiingo_tuto_vu_v2` → se réaffiche une fois à tout le monde.
 - `node --check` : 13/13 OK. __B + APP_VERSION = 0.13.0.
 
+## 2026-06-25 — Idées futures notées
+- Voir `_theorisation/08_idees_futures.md` : (1) bingo entièrement personnalisable (nombre de cases + contenu + objectifs éditables), (2) config technique « un seul appareil » via stream/miroir d'écran vers rétroprojecteur/télé. Non priorisé, à théoriser plus tard.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
