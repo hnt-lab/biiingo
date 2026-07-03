@@ -899,17 +899,19 @@ a { color: var(--rose); }
   .mc-tab.on { box-shadow: inset 0 -3px 0 var(--rose); }
 
   /* Largeur exploitée */
-  .mc-content { max-width: 1240px; padding: 22px 32px; }
-  /* Onglets à panneaux (Édition, Soirée) : DEUX colonnes */
-  .mc-content.cols { column-count: 2; column-gap: 22px; }
-  .mc-content.cols .soiree-bloc, .mc-content.cols > p { break-inside: avoid; }
+  .mc-content { max-width: 1400px; padding: 22px 36px; }
+  /* Onglets à panneaux (Édition, Soirée) : DEUX colonnes équilibrées (répartition JS, pas de
+     column-count : dans une zone à hauteur fixe il déborde en largeur → barre horizontale) */
+  .mc-cols-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; align-items: start; }
+  .mc-col { min-width: 0; }
 
   /* Tirage : grille généreuse et centrée */
-  .mc-grille { gap: 8px; max-width: 860px; margin: 0 auto; }
-  .mc-cell { font-size: 20px; border-radius: 10px; }
-  .mc-actions-row, .mc-alerte, .verif-hint, .verif-intro { max-width: 860px; margin-left: auto; margin-right: auto; }
+  .mc-grille { gap: 10px; max-width: 1000px; margin: 0 auto; }
+  .mc-cell { font-size: 22px; border-radius: 12px; }
+  .mc-actions-row, .mc-alerte, .verif-hint, .verif-intro { max-width: 1000px; margin-left: auto; margin-right: auto; }
   .mc-actions-row { margin-bottom: 12px; }
-  .verif-carton { max-width: 700px; margin-left: auto; margin-right: auto; }
+  .mc-actions-row .btn { padding: 14px 8px; font-size: 1.05em; }
+  .verif-carton { max-width: 760px; margin-left: auto; margin-right: auto; }
 
   /* Barre flottante de verdict : centrée, pas pleine largeur */
   .verif-cta.float { left: 50%; right: auto; transform: translateX(-50%); min-width: 520px; bottom: 26px; }

@@ -34,15 +34,41 @@ function renderMC(s, prev) {
 
   // Contenu de l'onglet actif (sur PC : Édition et Soirée s'affichent en 2 colonnes)
   const c = $('#mcContent');
-  c.classList.toggle('cols', S.mcTab === 'edition' || S.mcTab === 'soiree');
   if (S.mcTab === 'tirage') c.innerHTML = mcTirageHtml(s);
   else if (S.mcTab === 'verif') c.innerHTML = mcVerifHtml(s);
   else if (S.mcTab === 'entracte') c.innerHTML = mcEntracteHtml(s);
   else if (S.mcTab === 'edition') {
-    if (!editionRendered) { c.innerHTML = mcEditionHtml(s); editionRendered = true; }
+    if (!editionRendered) { c.innerHTML = mcEditionHtml(s); editionRendered = true; mcSplitCols(c); }
   }
-  else if (S.mcTab === 'soiree') c.innerHTML = mcSoireeHtml(s);
+  else if (S.mcTab === 'soiree') { c.innerHTML = mcSoireeHtml(s); mcSplitCols(c); }
 }
+
+// Sur grand écran : répartit les panneaux en 2 colonnes ÉQUILIBRÉES (la moins remplie reçoit le suivant)
+function mcSplitCols(c) {
+  if (!matchMedia('(min-width: 900px)').matches) return;
+  const enfants = [...c.children];
+  const wrap = document.createElement('div'); wrap.className = 'mc-cols-wrap';
+  const colA = document.createElement('div'); colA.className = 'mc-col';
+  const colB = document.createElement('div'); colB.className = 'mc-col';
+  let hA = 0, hB = 0;
+  enfants.forEach(el => {
+    if (el.classList.contains('ed-intro')) return; // l'intro reste en pleine largeur
+    const h = el.offsetHeight || 100;
+    if (hA <= hB) { colA.appendChild(el); hA += h; }
+    else { colB.appendChild(el); hB += h; }
+  });
+  wrap.appendChild(colA); wrap.appendChild(colB);
+  c.appendChild(wrap);
+}
+
+// Traverser le seuil PC/mobile → on reconstruit la mise en page de l'onglet
+let mcResizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(mcResizeTimer);
+  mcResizeTimer = setTimeout(() => {
+    if (S.mode === 'mc' && S.soiree) { editionRendered = false; renderMC(S.soiree, null); }
+  }, 350);
+});
 
 // ---------- Onglet TIRAGE ----------
 function mcTirageHtml(s) {
