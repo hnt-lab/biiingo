@@ -195,6 +195,14 @@
 - Biiingo v1.0.0 = officiellement diffusable (APK hors store + site + PWA).
 - ⚠️ Seule vérification restante demandée à l'utilisateur : confirmer que les règles Firestore resserrées ont bien été REPUBLIÉES (les cases pré-requis étaient décochées ; le domaine est prouvé fait par la connexion, les règles ne sont pas prouvables par les tests passés).
 
+## 2026-06-25 — v1.0.1 : dossier Play Store (Phase A)
+- Compte développeur Google Play créé par l'utilisateur ✅ (aide fournie pour le questionnaire « À propos de vous »).
+- **confidentialite.html** créée + liée (écran de connexion + Profil) — URL requise par le store.
+- **feature-graphic.png** (1024×500) générée (_tools/make_banner.js), style DA (grille + diagonale or→rose), vérifiée visuellement.
+- **_setup/GUIDE_PLAY_STORE.md** : pas à pas complet — fiche (textes prêts, positionnement anti-« jeu d'argent », app PAS jeu), data safety, classification IARC (gambling: NON), public 18+, compte démo pour les vérificateurs, test fermé 12×14j, production.
+- `node --check` OK. Version + __B = 1.0.1.
+- Théorisations 10 (modèle éco) et 11 (projection v2 : mode joueur avec jetons physiques, pub au lancement seulement, phases A-D) consignées — mode joueur = priorité produit après le store, théorisation détaillée à faire sur GO.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

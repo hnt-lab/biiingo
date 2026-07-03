@@ -18,7 +18,7 @@ function profilModal() {
     <hr class="ed-sep">
     <button class="btn block ghost danger" onclick="profDeleteModal()">🗑 Supprimer mon compte…</button>
     <p class="muted small center" style="margin-top:12px">Biiingo v${APP_VERSION} · outil d'animation de soirées bingo<br>
-    Fait avec des outils libres de droit ❤️</p>
+    Fait avec des outils libres de droit ❤️ · <a href="confidentialite.html" target="_blank">Confidentialité</a></p>
     <div class="modal-btns"><button class="btn primary" onclick="closeModal()">Fermer</button></div>`);
 }
 
