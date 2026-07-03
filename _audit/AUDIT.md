@@ -184,6 +184,11 @@
 3. PWABuilder : générer le zip APK (guide) + sauvegarder la clé + m'envoyer assetlinks.json.
 4. GitHub : créer le dépôt public `hnt-lab.github.io`.
 
+## 2026-06-25 — INCIDENT SÉCURITÉ (résolu) : clé de signature poussée sur le dépôt public
+- **Cause** : l'utilisateur avait déposé le zip PWABuilder (keystore + mots de passe) dans `_setup/` ; mon `git add -A` l'a embarqué sans vérification. **Leçon : toujours relire le `git status` avant un add -A quand des fichiers tiers peuvent traîner.**
+- **Résolution** : (1) paquet déplacé hors dépôt → `Bureau\Biiingo-CLES-APK-NE-PAS-SUPPRIMER\` ; (2) .gitignore blindé (*.keystore, *.apk, *.aab, signing-key-info.txt) ; (3) historique réécrit + push forcé (autorisé par l'utilisateur) ; (4) **clé considérée compromise → RÉGÉNÉRÉE** via PWABuilder (rien n'était distribué → coût nul) ; (5) assetlinks.json mis à jour avec la nouvelle empreinte (EF:D3:E4:…) et poussé sur hnt-lab.github.io.
+- L'ancien APK (1re clé) est à jeter ; seule la nouvelle génération fait foi.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
