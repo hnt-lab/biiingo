@@ -203,6 +203,17 @@
 - `node --check` OK. Version + __B = 1.0.1.
 - Théorisations 10 (modèle éco) et 11 (projection v2 : mode joueur avec jetons physiques, pub au lancement seulement, phases A-D) consignées — mode joueur = priorité produit après le store, théorisation détaillée à faire sur GO.
 
+## 2026-06-25 — v1.1.0 : MODE JOUEUR (Phase B) — codé d'un bloc sur GO
+- **3 nouveaux fichiers** : cartons.js (génération loto FR 3×9/15, sérialisation aplatie — Firestore interdit les tableaux imbriqués), jetons.js (physique matter.js MIT : pose au doigt, snap sur case, secousse/visibilitychange = tout tombe, halos d'aide sur cases correctement marquées), joueur.js (parcours complet).
+- **Parcours** : ?join=CODE (QR) → invité (auth anonyme Firebase) ou compte (pendingJoin) ; session localStorage biiingo_joueur ; paysage forcé (orientation.lock + overlay portrait) ; cartons persistés dans soirees/{id}/joueurs/{uid} ; nouvelle manche = nouveaux cartons + retour en jeu.
+- **Gameplay** : vibrations (tirage/alerte/victoire/élimination), alerte quine/double/carton STRICTE (jetons posés + numéros tirés, 1×/niveau/carton), mort subite auto (fissure OU brûle aléatoire + popup 💀 + spectateur), victoire par correspondance de nom (slug) → wins + nudge compte, écrans entracte/vérif/fin + hall of fame + nudge, bandeau animateur relayé.
+- **Côté MC** : compteur 👥 live (S.unsubJoueurs), bouton QR popup en salle (qrPopup), QR auto sur l'accueil, bloc ✏️ 👥 (activer/désactiver, nbCartons 1-4, jeton par défaut emoji/📷 image ronde bordée or via compressImageCircle) ; préset inclut les réglages joueurs.
+- **Profil** : jeton perso (compte) + stats participations/victoires. Participations : invités → registre organisateur ; comptes → users.stats.
+- **Règles Firestore** : sous-collection joueurs (chacun écrit SON doc). ⚠️ À REPUBLIER + **ACTIVER l'auth ANONYME** dans Firebase (2 actions utilisateur, en tête de la feuille de test).
+- Libre de droit : matter.js 0.19 (MIT) ajouté via CDN. `node --check` : 17/17 OK. Version + __B = 1.1.0.
+- Feuille de test : FEUILLE_DE_TEST_V1.1_MODE_JOUEUR.md.
+- ⚠️ Non testable par moi (physique/capteurs) — le test terrain est particulièrement crucial sur : perfs matter.js sur vieux téléphones, seuil de secousse (SECOUSSE_SEUIL=5), verrouillage paysage selon navigateurs.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

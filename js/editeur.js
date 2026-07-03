@@ -29,6 +29,25 @@ function mcEditionHtml(s) {
     <button class="btn block" onclick="edSaveAccueil(false)">💾 Enregistrer l'accueil</button>
   </div>
 
+  <!-- 1bis. LES JOUEURS (cartons dématérialisés) -->
+  <div class="soiree-bloc">
+    <h3 class="mc-h3">👥 Joueurs (cartons sur téléphone)</h3>
+    <button class="btn block ${s.joueursActif !== false ? 'primary' : ''}" onclick="edJoueursToggle()">
+      ${s.joueursActif !== false ? '✅ Mode joueur ACTIVÉ — désactiver' : '🚫 Mode joueur désactivé — activer'}</button>
+    <label class="field"><span>Cartons par joueur</span>
+      <select onchange="soireeUpdate({nbCartons:Number(this.value)})">
+        ${[1, 2, 3, 4].map(n => `<option value="${n}" ${(s.nbCartons || 1) === n ? 'selected' : ''}>${n} carton${n > 1 ? 's' : ''}</option>`).join('')}
+      </select></label>
+    <p class="muted small">Jeton par défaut de la soirée (posé par les joueurs sur leur carton) :</p>
+    <div class="jeton-choix">
+      ${JETONS_PRESETS.map(e => `<button class="jeton-btn ${s.jetonDefaut && s.jetonDefaut.type === 'emoji' && s.jetonDefaut.val === e ? 'on' : ''}"
+        onclick="soireeUpdate({jetonDefaut:{type:'emoji',val:'${e}'}});edAnimRefresh()">${e}</button>`).join('')}
+      ${s.jetonDefaut && s.jetonDefaut.type === 'image' ? `<span class="jeton-btn on img" style="background-image:url(${escAttr(s.jetonDefaut.val)})"></span>` : ''}
+      <input type="file" id="edJetonImg" accept="image/*" style="display:none" onchange="edJetonImage(this)">
+      <button class="jeton-btn" onclick="$('#edJetonImg').click()" title="Créer un jeton à partir d'une image">📷</button>
+    </div>
+  </div>
+
   <!-- 2. PENDANT LA PARTIE : déco du tableau + bandeau -->
   <div class="soiree-bloc">
     <h3 class="mc-h3">2️⃣ 🎲 Pendant la partie</h3>
@@ -240,6 +259,54 @@ function compressImagePng(file, maxDim) {
       const data = cv.toDataURL('image/png');
       if (data.length > 420000) { toast('Cette image reste trop lourde même réduite — choisis un PNG plus simple.'); resolve(null); return; }
       resolve(data);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
+    img.src = url;
+  });
+}
+
+// ---------- Mode joueur (réglages) ----------
+function edJoueursToggle() {
+  const actif = S.soiree.joueursActif !== false;
+  soireeUpdate({ joueursActif: !actif });
+  edAnimRefresh();
+}
+
+async function edJetonImage(input) {
+  const data = await compressImageCircle(input.files[0], JETON_IMG_SIZE);
+  if (!data) return;
+  soireeUpdate({ jetonDefaut: { type: 'image', val: data } });
+  toast('Jeton personnalisé créé 🎉');
+  edAnimRefresh();
+}
+
+// Jeton rond à partir d'une image : recadrage circulaire + bordure dorée
+function compressImageCircle(file, size) {
+  return new Promise(resolve => {
+    if (!file) { resolve(null); return; }
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = size;
+      const ctx = cv.getContext('2d');
+      // cercle de découpe
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      // image en mode "cover" (remplit le cercle)
+      const ratio = Math.max(size / img.width, size / img.height);
+      const w = img.width * ratio, h = img.height * ratio;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      // bordure dorée
+      ctx.beginPath();
+      ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
+      ctx.lineWidth = 6;
+      ctx.strokeStyle = '#e8c558';
+      ctx.stroke();
+      resolve(cv.toDataURL('image/png'));
     };
     img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
     img.src = url;
@@ -490,6 +557,9 @@ async function edSavePreset() {
       entracteFond: s.entracteFond || '',
       anims: s.anims || {},
       sonOff: (s.son && s.son.off) || [],
+      joueursActif: s.joueursActif !== false,
+      nbCartons: s.nbCartons || 1,
+      jetonDefaut: s.jetonDefaut || { type: 'emoji', val: '🔴' },
       updatedAt: FV.serverTimestamp()
     });
     toast('Préset enregistré 💾');

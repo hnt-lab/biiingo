@@ -3,13 +3,48 @@
 function initAuth() {
   fauth.onAuthStateChanged(async (user) => {
     S.user = user;
-    if (!user) { showScreen('authScreen'); return; }
+
+    // ----- Parcours JOUEUR -----
+    let jSess = null;
+    try { jSess = JSON.parse(localStorage.getItem('biiingo_joueur') || 'null'); } catch (e) {}
+
+    if (!user) {
+      if (window.__joinCode) { joueurInit(window.__joinCode); return; } // écran « rejoindre »
+      showScreen('authScreen');
+      return;
+    }
+
+    if (user.isAnonymous) {
+      // Un invité : reprise de partie si session, sinon écran rejoindre, sinon on nettoie
+      if (window.__joinCode && !jSess) { joueurInit(window.__joinCode); return; }
+      if (jSess && jSess.code) {
+        J.code = (window.__joinCode || jSess.code).toUpperCase();
+        joueurEntrer(jSess.nom || 'Invité·e', true).catch(() => { showScreen('joinScreen'); });
+        return;
+      }
+      fauth.signOut(); // anonyme orphelin → retour connexion
+      return;
+    }
+
+    // ----- Compte normal -----
     try {
       const d = await db.collection('users').doc(user.uid).get();
       S.profile = d.exists ? d.data() : { pseudo: user.email.split('@')[0] };
     } catch (e) {
       S.profile = { pseudo: user.email ? user.email.split('@')[0] : 'MC' };
     }
+
+    // Il venait rejoindre une soirée en tant que joueur AVEC son compte ?
+    let pending = null;
+    try { pending = localStorage.getItem('biiingo_pending_join'); } catch (e) {}
+    const joinCode = pending || window.__joinCode || (jSess && !jSess.invite ? jSess.code : null);
+    if (joinCode) {
+      try { localStorage.removeItem('biiingo_pending_join'); } catch (e) {}
+      J.code = joinCode.toUpperCase();
+      joueurEntrer(S.profile.pseudo || 'Joueur·se', false).catch(() => { showScreen('joinScreen'); });
+      return;
+    }
+
     // Après un F5 : retour direct là où on était (écran de salle ou télécommande)
     let sess = null;
     try { sess = JSON.parse(localStorage.getItem('biiingo_session') || 'null'); } catch (e) {}

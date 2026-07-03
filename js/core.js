@@ -147,7 +147,10 @@ async function createSoiree() {
       gagne: { style: 'pluie', parts: [], vedette: '' },
       faux: { style: 'douche', parts: [], vedette: '' }
     },
-    son: { mute: false, volume: 0.85, off: [] }
+    son: { mute: false, volume: 0.85, off: [] },
+    joueursActif: true, nbCartons: 1,
+    jetonDefaut: { type: 'emoji', val: '🔴' },
+    qrPopup: false
   };
   if (presetId) {
     try {
@@ -160,7 +163,10 @@ async function createSoiree() {
         base.deco = d.deco || base.deco;
         base.entracteFond = d.entracteFond || '';
         if (d.anims && d.anims.gagne) base.anims = d.anims;
-        if (d.sonOff) base.son = { mute: false, volume: 0.85, off: d.sonOff };
+        if (d.sonOff) base.son = { mute: false, volume: 0.85, off: d.sonOff, };
+        if (typeof d.joueursActif === 'boolean') base.joueursActif = d.joueursActif;
+        if (d.nbCartons) base.nbCartons = d.nbCartons;
+        if (d.jetonDefaut) base.jetonDefaut = d.jetonDefaut;
       }
     } catch (e) {}
   }
@@ -247,6 +253,17 @@ function openSoiree(id, mode, gesture) {
     if (S.mode === 'salle') { salleEtatAffiche = null; renderSalle(S.soiree, null); }
     else { editionRendered = false; renderMC(S.soiree, null); }
   }, () => {});
+
+  // Compteur de joueurs connectés (mode joueur) — visible par l'animateur
+  S.nbJoueurs = 0;
+  if (S.unsubJoueurs) { S.unsubJoueurs(); S.unsubJoueurs = null; }
+  if (mode === 'mc') {
+    S.unsubJoueurs = db.collection('soirees').doc(id).collection('joueurs').onSnapshot(snap => {
+      S.nbJoueurs = snap.size;
+      const el = $('#mcNbJoueurs');
+      if (el) el.textContent = '👥 ' + S.nbJoueurs;
+    }, () => {});
+  }
 }
 
 // Image stockée hors fiche soirée — repli sur l'ancien champ inline (compat soirées existantes)
@@ -284,6 +301,7 @@ async function loadCustomSounds() {
 function quitSoiree() {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
+  if (S.unsubJoueurs) { S.unsubJoueurs(); S.unsubJoueurs = null; }
   S.medias = {};
   Sons.stopAll();
   Sons.clearCustom();
@@ -336,5 +354,9 @@ window.addEventListener('load', () => {
     $('#loadMsg').innerHTML = '⚙️ Configuration en attente.<br>L\'installation n\'est pas terminée (voir le guide d\'installation).';
     return;
   }
+  // Lien joueur ?join=CODE (arrivée par QR)
+  const params = new URLSearchParams(location.search);
+  const join = (params.get('join') || '').trim();
+  if (join) window.__joinCode = join.toUpperCase();
   initAuth();
 });

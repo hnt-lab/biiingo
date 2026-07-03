@@ -24,6 +24,7 @@ function renderMC(s, prev) {
       <div class="mc-head-titre">${esc(s.titre)}</div>
       <div class="mc-head-sub">Manche ${s.manche} · ${obj.label} · ${s.tires.length}/${NB_NUMEROS}</div>
     </div>
+    ${s.joueursActif !== false ? `<span class="mc-head-joueurs" id="mcNbJoueurs">👥 ${S.nbJoueurs || 0}</span>` : ''}
     <div class="mc-head-code">${esc(s.code)}</div>`;
 
   // Barre d'onglets
@@ -189,6 +190,9 @@ function mcSoireeHtml(s) {
       <button class="btn big ${s.etat === 'tirage' ? 'primary' : ''}" onclick="soireeUpdate({etat:'tirage'})">🎲<br>Partie</button>
       <button class="btn big ${s.etat === 'fin' ? 'primary' : ''}" onclick="mcAfficherFin()">🏆<br>Fin</button>
     </div>
+    ${s.joueursActif !== false ? `
+    <button class="btn block ${s.qrPopup ? 'primary' : ''}" onclick="soireeUpdate({qrPopup:${s.qrPopup ? 'false' : 'true'}})">
+      ${s.qrPopup ? '📱 Masquer le QR en salle' : '📱 Afficher le QR en salle (rejoindre)'}</button>` : ''}
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">🔊 Son de la salle</h3>
