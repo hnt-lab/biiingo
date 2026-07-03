@@ -75,3 +75,23 @@ function doLogout() {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   fauth.signOut();
 }
+
+// Mot de passe oublié : envoie l'email de réinitialisation Firebase
+async function doResetPwd() {
+  const email = $('#authEmail').value.trim();
+  if (!email) {
+    $('#authError').textContent = 'Écris d\'abord ton email dans le champ ci-dessus, puis re-clique.';
+    return;
+  }
+  try {
+    await fauth.sendPasswordResetEmail(email);
+    $('#authError').textContent = '';
+    modal(`
+      <h3>📬 Email envoyé !</h3>
+      <p class="modal-msg">Si un compte existe avec <b>${esc(email)}</b>, tu vas recevoir un email
+      pour choisir un nouveau mot de passe (pense à vérifier les spams).</p>
+      <div class="modal-btns"><button class="btn primary" onclick="closeModal()">OK</button></div>`);
+  } catch (e) {
+    $('#authError').textContent = authMessage(e.code);
+  }
+}
