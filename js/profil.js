@@ -26,6 +26,7 @@ function profilModal() {
     <hr class="ed-sep">
     <button class="btn block" onclick="profChangePwdModal()">🔑 Changer mon mot de passe</button>
     <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>
+    <button class="btn block" onclick="feedbackModal('profil')">💬 Donner mon avis</button>
     <button class="btn block" onclick="confirmAction('Se déconnecter ?','Déconnexion','closeModal();doLogout()')">🚪 Se déconnecter</button>
     <hr class="ed-sep">
     <button class="btn block ghost danger" onclick="profDeleteModal()">🗑 Supprimer mon compte…</button>

@@ -32,8 +32,9 @@ function renderMC(s, prev) {
     `<button class="mc-tab ${S.mcTab === t.id ? 'on' : ''}" onclick="mcSetTab('${t.id}')">
       <span class="mc-tab-ico">${t.icon}</span><span>${t.label}</span></button>`).join('');
 
-  // Contenu de l'onglet actif
+  // Contenu de l'onglet actif (sur PC : Édition et Soirée s'affichent en 2 colonnes)
   const c = $('#mcContent');
+  c.classList.toggle('cols', S.mcTab === 'edition' || S.mcTab === 'soiree');
   if (S.mcTab === 'tirage') c.innerHTML = mcTirageHtml(s);
   else if (S.mcTab === 'verif') c.innerHTML = mcVerifHtml(s);
   else if (S.mcTab === 'entracte') c.innerHTML = mcEntracteHtml(s);
@@ -229,6 +230,7 @@ function mcSoireeHtml(s) {
   <div class="soiree-bloc">
     <h3 class="mc-h3">📖 Aide</h3>
     <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>
+    <button class="btn block" onclick="feedbackModal('mc')">💬 Donner mon avis</button>
     <button class="btn block" onclick="appReload()">🔄 Recharger / mettre à jour l'app</button>
     <p class="muted small" style="text-align:center;margin-top:6px">Biiingo v${APP_VERSION}</p>
   </div>

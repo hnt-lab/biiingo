@@ -410,6 +410,7 @@ function joueurRenderFin() {
         <button class="btn primary big" onclick="joueurNudgeCompte()">👤 Créer mon compte pour garder mes stats</button>
         <p class="muted small">Avec un compte, tes victoires te suivent à toutes les soirées — et tu peux
         personnaliser tes jetons ✨</p>` : ''}
+      <button class="btn ghost" onclick="feedbackModal('joueur')">💬 Donner mon avis</button>
       <button class="btn ghost" onclick="joueurQuitter()">Quitter</button>
     </div>`;
 }

@@ -881,12 +881,36 @@ a { color: var(--rose); }
 .vcase.ok { background: #1d5a39; border: 1px solid var(--ok); color: #b8ffd9; }
 .vcase.ko { background: #5d2330; border: 1px solid var(--ko); color: #ffc4c9; }
 
-/* Télécommande sur PC / grand écran : on respire */
+/* ===== Télécommande sur PC / grand écran : VRAIE mise en page bureau =====
+   (différente du mobile, comme le Toolkit : onglets EN HAUT, 2 colonnes, largeur exploitée) */
 @media (min-width: 900px) {
-  .mc-content { max-width: 900px; padding: 20px 28px; }
-  .mc-header, .mc-tabs { padding-left: calc(50vw - 450px); padding-right: calc(50vw - 450px); }
-  .mc-grille { gap: 8px; }
-  .mc-cell { font-size: 19px; border-radius: 10px; }
-  .mc-tab { font-size: .85em; }
-  .mc-tab .mc-tab-ico { font-size: 1.9em; }
+  /* Onglets remontés sous l'en-tête (ordre flex : header 0, tabs 1, contenu 2) */
+  .mc-header { order: 0; }
+  .mc-tabs {
+    order: 1; border-top: none; border-bottom: 1px solid var(--bord);
+    justify-content: center; gap: 8px; padding: 0 12px;
+  }
+  .mc-content { order: 2; }
+  .mc-tab {
+    flex: 0 0 auto; flex-direction: row; gap: 8px; align-items: center;
+    padding: 13px 26px; font-size: 1em;
+  }
+  .mc-tab .mc-tab-ico { font-size: 1.25em; }
+  .mc-tab.on { box-shadow: inset 0 -3px 0 var(--rose); }
+
+  /* Largeur exploitée */
+  .mc-content { max-width: 1240px; padding: 22px 32px; }
+  /* Onglets à panneaux (Édition, Soirée) : DEUX colonnes */
+  .mc-content.cols { column-count: 2; column-gap: 22px; }
+  .mc-content.cols .soiree-bloc, .mc-content.cols > p { break-inside: avoid; }
+
+  /* Tirage : grille généreuse et centrée */
+  .mc-grille { gap: 8px; max-width: 860px; margin: 0 auto; }
+  .mc-cell { font-size: 20px; border-radius: 10px; }
+  .mc-actions-row, .mc-alerte, .verif-hint, .verif-intro { max-width: 860px; margin-left: auto; margin-right: auto; }
+  .mc-actions-row { margin-bottom: 12px; }
+  .verif-carton { max-width: 700px; margin-left: auto; margin-right: auto; }
+
+  /* Barre flottante de verdict : centrée, pas pleine largeur */
+  .verif-cta.float { left: 50%; right: auto; transform: translateX(-50%); min-width: 520px; bottom: 26px; }
 }
