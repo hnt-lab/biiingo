@@ -259,7 +259,8 @@ function openSoiree(id, mode, gesture) {
   if (S.unsub) { S.unsub(); S.unsub = null; }
   S.soireeId = id; S.mode = mode; S.soiree = null; S.prev = null; S.mcTab = 'tirage';
   // On retient la session : après un F5, on revient directement ici (demande utilisateur)
-  try { localStorage.setItem('biiingo_session', JSON.stringify({ id, mode })); } catch (e) {}
+  // (en affichage public, la session est déjà mémorisée sous biiingo_display)
+  if (!S.displayMode) try { localStorage.setItem('biiingo_session', JSON.stringify({ id, mode })); } catch (e) {}
   if (mode === 'salle') {
     showScreen('salleScreen');
     salleOpenInit(gesture !== false); // ouvert via un clic → plein écran + son immédiats
@@ -347,6 +348,13 @@ function quitSoiree() {
   S.sonsCustom = {};
   try { localStorage.removeItem('biiingo_session'); } catch (e) {}
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  // Écran public (TV) : pas de « maison » où revenir → on repart proprement de zéro
+  if (S.displayMode) {
+    S.displayMode = false;
+    try { localStorage.removeItem('biiingo_display'); } catch (e) {}
+    location.href = location.pathname;
+    return;
+  }
   S.soireeId = null; S.soiree = null; S.mode = null;
   renderHome();
 }
@@ -393,9 +401,33 @@ window.addEventListener('load', () => {
     $('#loadMsg').innerHTML = '⚙️ Configuration en attente.<br>L\'installation n\'est pas terminée (voir le guide d\'installation).';
     return;
   }
-  // Lien joueur ?join=CODE (arrivée par QR)
+  // Liens spéciaux : ?join=CODE (joueur, QR) et ?display=CODE (écran public : TV/Chromecast)
   const params = new URLSearchParams(location.search);
   const join = (params.get('join') || '').trim();
   if (join) window.__joinCode = join.toUpperCase();
+  const disp = (params.get('display') || '').trim();
+  if (disp) window.__displayCode = disp.toUpperCase();
   initAuth();
 });
+
+// ---------- Affichage public (idée 2 — brique 1) ----------
+// Un écran (Smart TV, navigateur, Chromecast) affiche la soirée EN LECTURE SEULE via son code,
+// sans compte : connexion anonyme invisible, puis vue salle classique.
+async function displayEnter(code) {
+  try {
+    const snap = await db.collection('soirees').where('code', '==', code.toUpperCase()).get();
+    let doc = null;
+    snap.forEach(d => { if (!doc || d.data().statut === 'active') doc = d; });
+    if (!doc) {
+      showScreen('loadScreen');
+      $('#loadMsg').innerHTML = '😢 Aucune soirée avec le code <b>' + esc(code.toUpperCase()) + '</b>.<br>Vérifie le lien et recharge la page.';
+      return;
+    }
+    S.displayMode = true;
+    try { localStorage.setItem('biiingo_display', JSON.stringify({ code: code.toUpperCase() })); } catch (e) {}
+    openSoiree(doc.id, 'salle', false);
+  } catch (e) {
+    showScreen('loadScreen');
+    $('#loadMsg').innerHTML = 'Connexion impossible — vérifie le réseau de l\'écran puis recharge.';
+  }
+}

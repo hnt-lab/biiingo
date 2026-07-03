@@ -1,2 +1,2 @@
 // Source unique de version — bumper à chaque déploiement (affichage uniquement, pas de cache à gérer)
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.4.0';
