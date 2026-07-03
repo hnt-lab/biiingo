@@ -94,4 +94,26 @@ Condition stricte : jetons posés sur TOUTES les cases de la ligne ET numéros r
 - Choix du style de SES jetons (ex. 6 styles : 🔴 classique, 💖, ⭐, 💋, 🍀, 💀) + couleur du carton.
 - (Plus tard : skins premium = crochet freemium, théorisation 10/11.)
 
-*Statut : maquettes en attente de validation → puis GO code (un bloc) + feuille de test.*
+## ✅ VALIDATION UTILISATEUR (2026-06-25) — maquettes approuvées AVEC amendements
+
+1. **Vue joueur en PAYSAGE** (téléphone horizontal) : le carton 3×9 s'y étale naturellement.
+   - En app installée/TWA : verrouillage paysage (screen.orientation.lock).
+   - En navigateur simple : écran « 🔄 Tourne ton téléphone » tant qu'on est en portrait.
+   - Layout paysage : carton au centre, réserve de jetons à droite (pouce), miniatures PiP à gauche,
+     bandeau animateur en bas, dernier numéro en haut.
+2. **PAS de mode sérieux — hardcore assumé** :
+   - Le téléphone bouge → les jetons glissent/tombent.
+   - **Changer d'appli / verrouiller l'écran → TOUS les jetons tombent** (visibilitychange).
+   - **Aide à la re-pose** : les cases où un jeton était posé À RAISON (numéro réellement tiré)
+     restent **légèrement mises en avant** (halo doux) pour remettre facilement. Les cases marquées
+     à tort ne sont PAS aidées (bien fait pour toi 💅).
+3. Texte alerte : « 👀 Psst… ta ligne 2 est complète. **À toi de crier !** »
+4. Élimination : le carton **se fissure OU brûle** (choisi aléatoirement — variété).
+5. Côté animateur : OK tel quel. Nudge compte : OK tel quel.
+6. **NOUVEAU — jeton personnalisé À PARTIR D'UNE IMAGE** : cercle avec bordure et l'image insérée
+   dedans (recadrage circulaire automatique via canvas, compressé petit ~128px).
+   - Joueur avec compte : son jeton-image perso.
+   - Animateur : peut aussi créer le jeton PAR DÉFAUT de la soirée à partir d'une image (logo de la
+     troupe, tête de la drag du soir 💖).
+
+*Statut : MAQUETTES VALIDÉES. EN ATTENTE DU GO EXPLICITE pour coder la Phase B d'un bloc.*
