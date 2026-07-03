@@ -235,6 +235,12 @@
 | Responsive MC sur PC | ≥900px : télécommande élargie (900px), grille/onglets agrandis |
 - `node --check` 17/17 OK. Version + __B = 1.2.0. Reste À TESTER : le lot complet + « rejoindre avec compte » (non testé au 1er passage).
 
+## 2026-06-25 — v1.3.0 : télécommande bureau + feedback
+- **Vraie mise en page BUREAU de la télécommande (≥900px)**, différente du mobile (comme le Toolkit) : **onglets EN HAUT** (sous l'en-tête, horizontaux, soulignés), largeur exploitée (1240px), **Édition et Soirée en 2 COLONNES** (column-count, blocs insécables), grille de tirage centrée à 860px, barre de verdict flottante centrée (plus pleine largeur).
+- **Bouton 💬 « Donner mon avis »** : modal (texte + contact optionnel) → collection Firestore `feedback` {texte, contact, origine mc/profil/joueur, nom, uid, version, ts}. Boutons : ⚙️ Soirée (Aide), 👤 Profil, écran de fin joueur. **Lecture des retours : console Firebase → Firestore → feedback** (aucune lecture côté app).
+- ⚠️ Règle Firestore `feedback` (create only) ajoutée → À REPUBLIER.
+- `node --check` 17/17 OK. Version + __B = 1.3.0.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
