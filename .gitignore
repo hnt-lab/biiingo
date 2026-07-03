@@ -1,2 +1,9 @@
 # Document de travail local (profil/méthode) — pas dans le dépôt public
 CLAUDE.md
+
+# ⚠️ SÉCURITÉ : jamais de clés de signature ni de paquets APK dans le dépôt public
+*.keystore
+*.apk
+*.aab
+signing-key-info.txt
+*Google Play package*
