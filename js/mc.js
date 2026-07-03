@@ -32,21 +32,24 @@ function renderMC(s, prev) {
     `<button class="mc-tab ${S.mcTab === t.id ? 'on' : ''}" onclick="mcSetTab('${t.id}')">
       <span class="mc-tab-ico">${t.icon}</span><span>${t.label}</span></button>`).join('');
 
-  // Contenu de l'onglet actif (sur PC : Édition et Soirée s'affichent en 2 colonnes)
+  // Contenu de l'onglet actif, dans un conteneur intérieur centré : la zone de défilement
+  // occupe TOUTE la largeur → la barre de scroll est au bord droit de la fenêtre, comme partout.
   const c = $('#mcContent');
-  if (S.mcTab === 'tirage') c.innerHTML = mcTirageHtml(s);
-  else if (S.mcTab === 'verif') c.innerHTML = mcVerifHtml(s);
-  else if (S.mcTab === 'entracte') c.innerHTML = mcEntracteHtml(s);
+  const enveloppe = (html) => `<div class="mc-inner">${html}</div>`;
+  if (S.mcTab === 'tirage') c.innerHTML = enveloppe(mcTirageHtml(s));
+  else if (S.mcTab === 'verif') c.innerHTML = enveloppe(mcVerifHtml(s));
+  else if (S.mcTab === 'entracte') c.innerHTML = enveloppe(mcEntracteHtml(s));
   else if (S.mcTab === 'edition') {
-    if (!editionRendered) { c.innerHTML = mcEditionHtml(s); editionRendered = true; mcSplitCols(c); }
+    if (!editionRendered) { c.innerHTML = enveloppe(mcEditionHtml(s)); editionRendered = true; mcSplitCols(c); }
   }
-  else if (S.mcTab === 'soiree') { c.innerHTML = mcSoireeHtml(s); mcSplitCols(c); }
+  else if (S.mcTab === 'soiree') { c.innerHTML = enveloppe(mcSoireeHtml(s)); mcSplitCols(c); }
 }
 
 // Sur grand écran : répartit les panneaux en 2 colonnes ÉQUILIBRÉES (la moins remplie reçoit le suivant)
 function mcSplitCols(c) {
   if (!matchMedia('(min-width: 900px)').matches) return;
-  const enfants = [...c.children];
+  const inner = c.querySelector('.mc-inner') || c;
+  const enfants = [...inner.children];
   const wrap = document.createElement('div'); wrap.className = 'mc-cols-wrap';
   const colA = document.createElement('div'); colA.className = 'mc-col';
   const colB = document.createElement('div'); colB.className = 'mc-col';
@@ -58,7 +61,7 @@ function mcSplitCols(c) {
     else { colB.appendChild(el); hB += h; }
   });
   wrap.appendChild(colA); wrap.appendChild(colB);
-  c.appendChild(wrap);
+  inner.appendChild(wrap);
 }
 
 // Traverser le seuil PC/mobile → on reconstruit la mise en page de l'onglet
