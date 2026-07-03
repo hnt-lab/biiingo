@@ -20,7 +20,9 @@ function profilModal() {
       <input type="file" id="profJetonImg" accept="image/*" style="display:none" onchange="profJetonImage(this)">
       <button class="jeton-btn" onclick="$('#profJetonImg').click()" title="Créer mon jeton à partir d'une image">📷</button>
     </div>
-    ${S.profile && S.profile.stats ? `<p class="muted small">🎉 ${S.profile.stats.participations || 0} soirée(s) jouée(s) · 🏆 ${S.profile.stats.victoires || 0} victoire(s)</p>` : ''}
+    ${S.profile && S.profile.stats ? `<p class="muted small">🎉 ${S.profile.stats.participations || 0} soirée(s) ·
+      1️⃣ ${S.profile.stats.quine || 0} quine(s) · 2️⃣ ${S.profile.stats.double || 0} double(s) ·
+      🏆 ${S.profile.stats.carton || 0} carton(s) · 💀 ${S.profile.stats.lose || 0} mort(s) subite(s)</p>` : ''}
     <hr class="ed-sep">
     <button class="btn block" onclick="profChangePwdModal()">🔑 Changer mon mot de passe</button>
     <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>

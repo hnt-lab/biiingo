@@ -24,7 +24,7 @@ function renderMC(s, prev) {
       <div class="mc-head-titre">${esc(s.titre)}</div>
       <div class="mc-head-sub">Manche ${s.manche} · ${obj.label} · ${s.tires.length}/${NB_NUMEROS}</div>
     </div>
-    ${s.joueursActif !== false ? `<span class="mc-head-joueurs" id="mcNbJoueurs">👥 ${S.nbJoueurs || 0}</span>` : ''}
+    ${s.joueursActif !== false ? `<span class="mc-head-joueurs" id="mcNbJoueurs" onclick="mcJoueursModal()">👥 ${S.nbJoueurs || 0}</span>` : ''}
     <div class="mc-head-code">${esc(s.code)}</div>`;
 
   // Barre d'onglets
@@ -92,11 +92,22 @@ function mcObjectifModal() {
     <div class="obj-choices">
       ${Object.keys(OBJECTIFS).map(k => {
         const o = OBJECTIFS[k];
+        // La partie de la lose démarre TOUJOURS sur un tableau vierge
+        const action = k === 'lose'
+          ? `closeModal();confirmAction('La partie de la lose démarre sur un tableau VIDE.<br><span class=&quot;muted&quot;>Les numéros déjà tirés seront effacés.</span>','💀 C\\'est parti','mcLanceLose()')`
+          : `soireeUpdate({objectif:'${k}'});closeModal()`;
         return `<button class="btn obj ${s.objectif === k ? 'primary' : ''}"
-          onclick="soireeUpdate({objectif:'${k}'});closeModal()">${o.emoji} ${o.label}<br><small>${o.detail}</small></button>`;
+          onclick="${action}">${o.emoji} ${o.label}<br><small>${o.detail}</small></button>`;
       }).join('')}
     </div>
     <div class="modal-btns"><button class="btn ghost" onclick="closeModal()">Fermer</button></div>`);
+}
+
+function mcLanceLose() {
+  soireeUpdate({
+    objectif: 'lose', tires: [], etat: 'tirage',
+    verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' }
+  });
 }
 
 function mcMancheSuivante() {
@@ -227,6 +238,18 @@ function mcSoireeHtml(s) {
       : `<button class="btn block" onclick="soireeUpdate({statut:'active',etat:'tirage'})">🔓 Rouvrir la soirée</button>`}
     ${isOwner ? `<button class="btn block ghost danger" onclick="confirmAction('Supprimer DÉFINITIVEMENT cette soirée ?','Supprimer 🗑','mcSupprimer()')">🗑 Supprimer la soirée</button>` : ''}
   </div>`;
+}
+
+// Liste des joueurs connectés (tap sur le compteur 👥)
+function mcJoueursModal() {
+  const rows = (S.joueurs || []).map(j => `
+    <div class="hof-row"><span>${j.elimine ? '💀 ' : ''}<b>${esc(j.nom || '?')}</b>
+      <span class="muted small">${j.invite ? 'invité·e' : 'compte'}${j.wins ? ' · 🏆 ' + j.wins : ''}</span></span>
+      <span class="muted small">${(j.cartons || []).length} carton(s)</span></div>`).join('');
+  modal(`
+    <h3>👥 Joueurs connectés (${S.nbJoueurs || 0})</h3>
+    ${rows || '<p class="muted">Personne pour l\'instant — affiche le QR en salle !</p>'}
+    <div class="modal-btns"><button class="btn primary" onclick="closeModal()">Fermer</button></div>`);
 }
 
 function mcAfficherFin() { soireeUpdate({ etat: 'fin' }); }

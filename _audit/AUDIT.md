@@ -214,6 +214,27 @@
 - Feuille de test : FEUILLE_DE_TEST_V1.1_MODE_JOUEUR.md.
 - ⚠️ Non testable par moi (physique/capteurs) — le test terrain est particulièrement crucial sur : perfs matter.js sur vieux téléphones, seuil de secousse (SECOUSSE_SEUIL=5), verrouillage paysage selon navigateurs.
 
+## 2026-06-25 — v1.2.0 : lot retours test mode joueur (~16 points)
+| Retour | Traitement |
+|---|---|
+| Vérif : choisir un joueur connecté + voir SON carton | Chips 📱 des joueurs connectés à l'écran de lancement (tap = sélection) + autocomplétion registre+connectés ; pendant la vérif d'un joueur connecté : **son carton affiché** en clair (vert/rouge selon objectif, logique lose inversée), verdict suggéré auto (CTA flottant), plus de pointage manuel pour lui. Papier = pointage classique inchangé. `verification.joueurUid` |
+| Jetons gelés pendant la vérif + overlay joueur | `Jetons.freeze()` (statique + pointer-events off) ; côté joueur la vérif est un **voile semi-transparent** par-dessus le carton (« C'est TON carton qu'on vérifie 🤞 » si concerné) — plus d'écran de remplacement |
+| MC voit les joueurs présents | Tap sur 👥 → modal liste (nom, invité/compte, 💀, victoires, nb cartons) — S.joueurs (snapshot complet) |
+| Objectif pas mis à jour chez les joueurs | Fix : libellé objectif rafraîchi à CHAQUE snapshot + reset des alertes au changement d'objectif |
+| Passage en lose = tableau pas vidé | Choisir 💀 dans 🎯 → confirmation → `tires:[]` + verif reset (mcLanceLose) |
+| Secousse trop sensible | SECOUSSE_SEUIL 5 → 12 m/s² |
+| Chute au changement d'appli | SUPPRIMÉE (« je suis allé trop loin ») — listener visibilitychange retiré |
+| Chute si tentative de portrait | AJOUTÉE (matchMedia orientation) |
+| Halo d'aide ne marchait pas | Refonte : mémorisé À LA POSE correcte (plus robuste que la détection à la chute) |
+| Réservoir sûr | Zone réserve murée (mur gauche) + jetons dedans exclus du dislodge + tag 🛟 |
+| Miniatures = vrais mini-cartons | Grille 9×3 miniature par carton, cases marquées en rose |
+| Manche suivante ≠ nouveaux cartons auto | Les cartons sont CONSERVÉS (habitude des habitués) ; bouton 🎴 « Changer mes cartons » (confirmation) au choix du joueur |
+| Élimination : « rester regarder » inutile | Relabellisé « ↩ Revenir à mon carton » |
+| Bandeau joueur gênant en tirage | Visible uniquement entracte + fin côté joueur |
+| Stats détaillées | users.stats.{quine,double,carton,lose} + registre par type + affichage Profil détaillé |
+| Responsive MC sur PC | ≥900px : télécommande élargie (900px), grille/onglets agrandis |
+- `node --check` 17/17 OK. Version + __B = 1.2.0. Reste À TESTER : le lot complet + « rejoindre avec compte » (non testé au 1er passage).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

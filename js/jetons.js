@@ -10,6 +10,8 @@ const Jetons = {
   aidHalo: new Set(),    // numéros à remettre (étaient bien posés avant une chute)
   style: { type: 'emoji', val: '🔴' },
   onChange: null,        // callback(markedSet) à chaque pose/chute
+  frozen: false,         // vérification en cours : tout est gelé
+  reserve: null,         // zone-refuge {x,y,w,h} : les jetons y sont à l'abri des secousses
   _drag: null, _raf: null,
 
   init(aireEl, style, onChange) {
@@ -31,8 +33,34 @@ const Jetons = {
       M.Bodies.rectangle(-ep / 2, h / 2, ep, h * 2, opts),
       M.Bodies.rectangle(w + ep / 2, h / 2, ep, h * 2, opts)
     ]);
+    // le RÉSERVOIR (zone de droite) : muré → les jetons qui y dorment n'en sortent pas
+    const resEl = aireEl.querySelector('.jetons-reserve');
+    if (resEl) {
+      const ar = aireEl.getBoundingClientRect(), rr = resEl.getBoundingClientRect();
+      this.reserve = { x: rr.left - ar.left, y: rr.top - ar.top, w: rr.width, h: rr.height };
+      M.Composite.add(this.world,
+        M.Bodies.rectangle(this.reserve.x - 3, h / 2, 6, h * 2, { isStatic: true }));
+    }
+    this.frozen = false;
     this._loop();
     this._ecouteSecousses();
+  },
+
+  _dansReserve(body) {
+    const r = this.reserve;
+    return r && body.position.x >= r.x && body.position.y >= r.y;
+  },
+
+  // Vérification en cours : tout gelé (aucune pose, aucune chute)
+  freeze(on) {
+    const M = window.Matter;
+    if (!M || this.frozen === on) return;
+    this.frozen = on;
+    this.bodies.forEach(j => {
+      if (on) { j._etaitDyn = !j.body.isStatic; M.Body.setStatic(j.body, true); }
+      else if (j._etaitDyn && !j.num) M.Body.setStatic(j.body, false);
+      j.el.style.pointerEvents = on ? 'none' : '';
+    });
   },
 
   destroy() {
@@ -115,6 +143,9 @@ const Jetons = {
           jeton.num = +num;
           this.marked.add(+num);
           jeton.el.classList.add('pose');
+          // pose CORRECTE (numéro réellement tiré) → mémorisée pour le halo d'aide après une chute
+          const tires = (window.S && S.soiree && S.soiree.tires) || [];
+          if (tires.includes(+num)) this.aidHalo.add(+num);
           this._notifie();
           return;
         }
@@ -125,12 +156,14 @@ const Jetons = {
     jeton.el.addEventListener('pointercancel', lacher);
   },
 
-  // TOUT tombe (secousse, changement d'appli) — les cases bien marquées gagnent un halo d'aide
+  // TOUT tombe (secousse, tentative de portrait) — SAUF les jetons à l'abri dans le réservoir.
+  // Les cases bien marquées gagnent un halo d'aide.
   dislodge(tires) {
     const M = window.Matter;
-    if (!M) return;
+    if (!M || this.frozen) return;
     let chute = false;
     this.bodies.forEach(j => {
+      if (!j.num && this._dansReserve(j.body)) return; // au chaud dans le réservoir
       if (j.num) {
         if (tires && tires.includes(j.num)) this.aidHalo.add(j.num);
         this.marked.delete(j.num);
@@ -157,9 +190,12 @@ const Jetons = {
       const mag = Math.sqrt((a.x || 0) ** 2 + (a.y || 0) ** 2 + (a.z || 0) ** 2);
       if (mag > SECOUSSE_SEUIL) this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
     });
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden && this.engine) this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
-    });
+    // Tenter de repasser en portrait = tout tombe 💅 (demande utilisateur)
+    try {
+      matchMedia('(orientation: portrait)').addEventListener('change', (e) => {
+        if (e.matches && this.engine) this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
+      });
+    } catch (e) {}
   },
 
   _notifie() { if (this.onChange) this.onChange(this.marked); },

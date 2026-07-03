@@ -254,12 +254,17 @@ function openSoiree(id, mode, gesture) {
     else { editionRendered = false; renderMC(S.soiree, null); }
   }, () => {});
 
-  // Compteur de joueurs connectés (mode joueur) — visible par l'animateur
+  // Joueurs connectés (mode joueur) — compteur + liste pour l'animateur
   S.nbJoueurs = 0;
+  S.joueurs = [];
   if (S.unsubJoueurs) { S.unsubJoueurs(); S.unsubJoueurs = null; }
   if (mode === 'mc') {
     S.unsubJoueurs = db.collection('soirees').doc(id).collection('joueurs').onSnapshot(snap => {
-      S.nbJoueurs = snap.size;
+      const list = [];
+      snap.forEach(d => list.push({ uid: d.id, ...d.data() }));
+      list.sort((a, b) => (a.nom || '').localeCompare(b.nom || ''));
+      S.joueurs = list;
+      S.nbJoueurs = list.length;
       const el = $('#mcNbJoueurs');
       if (el) el.textContent = '👥 ' + S.nbJoueurs;
     }, () => {});
@@ -335,14 +340,14 @@ async function saveWinnerToRegistre(nom) {
   const key = slugName(nom);
   if (!key) return;
   const owner = S.soiree.ownerUid;
-  const patch = {};
-  patch['noms.' + key] = { nom, victoires: FV.increment(1) };
+  // Type de victoire détaillé (quine / double / carton / lose) + total
+  const type = ['quine', 'double', 'carton', 'lose'].includes(S.soiree.objectif) ? S.soiree.objectif : 'quine';
   try {
     await db.collection('registres').doc(owner).set({
-      noms: { [key]: { nom, victoires: FV.increment(1) } }
+      noms: { [key]: { nom, victoires: FV.increment(1), [type]: FV.increment(1) } }
     }, { merge: true });
     if (!S.registre[key]) S.registre[key] = { nom, victoires: 0 };
-    S.registre[key].victoires++;
+    S.registre[key].victoires = (S.registre[key].victoires || 0) + 1;
   } catch (e) {}
 }
 

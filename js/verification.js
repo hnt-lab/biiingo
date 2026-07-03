@@ -19,23 +19,31 @@ function mcVerifHtml(s) {
 
   // Écran de lancement (pas de vérif en cours)
   if (!v.active) {
-    const noms = Object.values(S.registre || {})
-      .sort((a, b) => (b.victoires || 0) - (a.victoires || 0)).slice(0, 50);
-    const datalist = noms.map(n => `<option value="${escAttr(n.nom)}"></option>`).join('');
+    // Autocomplétion : noms du registre (habitués) + joueurs connectés
+    const nomsSet = new Set();
+    Object.values(S.registre || {}).forEach(n => nomsSet.add(n.nom));
+    (S.joueurs || []).forEach(j => j.nom && nomsSet.add(j.nom));
+    const datalist = [...nomsSet].slice(0, 80).map(n => `<option value="${escAttr(n)}"></option>`).join('');
+    // Joueurs connectés : un tap = son nom + SON CARTON s'affichera pendant la vérif
+    const chips = (S.joueurs || []).map(j =>
+      `<button class="joueur-chip ${j.elimine ? 'elim' : ''}" onclick="verifChoisitJoueur('${j.uid}')">
+        ${j.elimine ? '💀 ' : '📱 '}${esc(j.nom || '?')}</button>`).join('');
     const intro = lose
       ? `<h3 class="mc-h3">💀 Vérifier le·a survivant·e</h3>
-         <p class="muted">Mort subite : le·a survivant·e ne doit avoir <b>AUCUN</b> numéro sorti sur son carton.
-         Lance la vérification, puis appuie sur les numéros de son carton :
-         <span class="ok-txt">vert</span> = pas sorti (sauvé), <span class="ko-txt">rouge</span> = sorti (éliminé !).</p>`
+         <p class="muted">Mort subite : le·a survivant·e ne doit avoir <b>AUCUN</b> numéro sorti sur son carton.</p>`
       : `<h3 class="mc-h3">🔍 Vérifier un carton</h3>
-         <p class="muted">Note son nom, lance la vérification, puis appuie sur les numéros de SON carton :
-         <span class="ok-txt">vert</span> = sorti, <span class="ko-txt">rouge</span> = pas sorti…</p>`;
+         <p class="muted">Choisis un joueur connecté (son carton s'affichera tout seul) ou note le nom
+         d'un joueur papier, puis lance la vérification.</p>`;
     return `
     <div class="verif-intro">
       ${intro}
+      ${chips ? `<p class="muted small" style="text-align:left">📱 Joueurs connectés :</p>
+      <div class="joueur-chips">${chips}</div>` : ''}
       <label class="field"><span>Nom ${lose ? 'du·de la survivant·e' : 'du joueur'} (Hall of Fame — optionnel)</span>
-        <input id="verifNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline">
+        <input id="verifNom" type="text" maxlength="40" list="nomsConnus" placeholder="Jacqueline"
+               oninput="verifNomSaisi()">
         <datalist id="nomsConnus">${datalist}</datalist></label>
+      <input type="hidden" id="verifJoueurUid" value="">
       <label class="check-line">
         <input type="checkbox" id="verifSuspense" checked>
         <span>🥁 Mode suspense (ambiance + roulement à l'écran)</span>
@@ -44,7 +52,10 @@ function mcVerifHtml(s) {
     </div>`;
   }
 
-  // Vérification en cours → grille de pointage
+  // Vérification en cours — JOUEUR CONNECTÉ : son carton s'affiche, la lecture est immédiate
+  if (v.joueurUid) return mcVerifCartonHtml(s, v);
+
+  // Vérification en cours — joueur PAPIER : grille de pointage classique
   const coches = v.coches || [];
   const besoin = VERIF_BESOIN[s.objectif] || 5;
   const complet = coches.length >= besoin;
@@ -109,12 +120,86 @@ function mcVerifHtml(s) {
 // Nombre de cases à pointer (quine 5, double 10, carton 15, lose = carton complet 15)
 const VERIF_BESOIN = { quine: 5, double: 10, carton: 15, lose: 15 };
 
+// ---------- Vérification d'un JOUEUR CONNECTÉ : son carton en clair ----------
+function mcVerifCartonHtml(s, v) {
+  const lose = s.objectif === 'lose';
+  const joueur = (S.joueurs || []).find(j => j.uid === v.joueurUid);
+  if (!joueur) {
+    return `<div class="verif-intro"><p class="muted">Ce joueur n'est plus connecté.</p>
+      <button class="btn block" onclick="verifCancel()">✖ Annuler la vérification</button></div>`;
+  }
+  const tires = s.tires || [];
+  const cartons = cartonsDepuisDb(joueur.cartons);
+  let lignesOk = 0, numsSortis = 0, totalNums = 0;
+  const cartonsHtml = cartons.map((carton, idx) => {
+    let cells = '';
+    for (let r = 0; r < 3; r++) {
+      const nums = carton[r].filter(n => n > 0);
+      if (nums.every(n => tires.includes(n))) lignesOk++;
+      for (let col = 0; col < 9; col++) {
+        const n = carton[r][col];
+        if (!n) { cells += '<div class="vcase vide"></div>'; continue; }
+        totalNums++;
+        const sorti = tires.includes(n);
+        if (sorti) numsSortis++;
+        // normal : sorti = vert (bon) ; lose : sorti = rouge (fatal)
+        const bon = lose ? !sorti : sorti;
+        cells += `<div class="vcase ${bon ? 'ok' : 'ko'}">${n}</div>`;
+      }
+    }
+    return `<p class="muted small">Carton ${idx + 1} :</p><div class="verif-carton">${cells}</div>`;
+  }).join('');
+
+  // Verdict suggéré automatiquement
+  let cta = '';
+  if (lose) {
+    cta = numsSortis === 0
+      ? `<div class="verif-cta float win"><span>✨ Aucun numéro sorti — survivant·e légitime !</span>
+           <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Survivant·e confirmé·e</button></div>`
+      : `<div class="verif-cta float lose"><span>💀 ${numsSortis} numéro(s) sorti(s) — il·elle aurait dû perdre !</span>
+           <button class="btn ko big" onclick="verifVerdictFaux()">Éliminé·e</button></div>`;
+  } else {
+    const besoinLignes = s.objectif === 'quine' ? 1 : s.objectif === 'double' ? 2 : 3;
+    cta = lignesOk >= besoinLignes
+      ? `<div class="verif-cta float win"><span>✨ ${lignesOk} ligne(s) complète(s) — c'est BON !</span>
+           <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`
+      : `<div class="verif-cta float lose"><span>💋 ${lignesOk} ligne(s) complète(s) sur ${besoinLignes} requise(s)…</span>
+           <button class="btn ko big" onclick="verifVerdictFaux()">Faux bingo</button></div>`;
+  }
+  return `
+  <div class="mc-alerte">📱 Carton de <b>${esc(joueur.nom || '?')}</b>
+    <span class="verif-bilan"><span class="ok-txt">vert</span> = ${lose ? 'pas sorti (sauvé)' : 'sorti'} · <span class="ko-txt">rouge</span> = ${lose ? 'SORTI (fatal)' : 'pas sorti'}</span></div>
+  ${cartonsHtml}
+  <div class="mc-actions-row verdict-row">
+    <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
+  </div>
+  <div class="verif-float-spacer"></div>
+  ${cta}`;
+}
+
+function verifChoisitJoueur(uid) {
+  const j = (S.joueurs || []).find(x => x.uid === uid);
+  if (!j) return;
+  $('#verifNom').value = j.nom || '';
+  $('#verifJoueurUid').value = uid;
+  toast('Carton de ' + (j.nom || '?') + ' sélectionné 📱');
+}
+
+function verifNomSaisi() {
+  // Nom modifié à la main → on désélectionne le joueur connecté
+  const uid = $('#verifJoueurUid').value;
+  if (!uid) return;
+  const j = (S.joueurs || []).find(x => x.uid === uid);
+  if (!j || (j.nom || '') !== $('#verifNom').value.trim()) $('#verifJoueurUid').value = '';
+}
+
 function verifStart() {
   const suspense = $('#verifSuspense').checked;
   const nom = (($('#verifNom') && $('#verifNom').value) || '').trim();
+  const joueurUid = (($('#verifJoueurUid') && $('#verifJoueurUid').value) || '');
   soireeUpdate({
     etat: 'verification',
-    verification: { active: true, suspense, coches: [], verdict: '', gagnantNom: nom }
+    verification: { active: true, suspense, coches: [], verdict: '', gagnantNom: nom, joueurUid }
   });
 }
 
@@ -132,7 +217,7 @@ function verifTap(n) {
 }
 
 function verifCancel() {
-  soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' } });
+  soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '', joueurUid: '' } });
 }
 
 // Après un verdict : l'écran de salle garde l'animation ~7 s puis revient tout seul à la grille
@@ -180,5 +265,5 @@ function verifConfirmGagne() {
 }
 
 function verifEnd() {
-  soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '' } });
+  soireeUpdate({ etat: 'tirage', verification: { active: false, suspense: false, coches: [], verdict: '', gagnantNom: '', joueurUid: '' } });
 }
