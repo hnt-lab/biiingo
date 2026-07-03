@@ -172,6 +172,18 @@
 - **Règle permanente enregistrée (mémoire)** : bibliothèques libres de droit uniquement. Licences vérifiées : Firebase (Apache 2.0), qrcodejs (MIT), Bubblewrap (Apache 2.0).
 - `node --check` : 14/14 OK. Version + __B = 0.14.0.
 
+## 2026-06-25 — v0.14.1 : SPRINT v1 — Lot 2 (préparation APK)
+- **Méthode APK choisie : PWABuilder** (open source MIT — respecte la règle libre de droit) → TWA signée sans toolchain local. Justification : pas de téléchargement SDK/JDK fragile sur la machine, génère APK + clé + assetlinks en un clic. Bubblewrap gardé en plan B.
+- **Site rendu « packageable »** : manifest.json complété (`id`) ; **sw.js minimal SANS AUCUN CACHE** (installabilité sans réintroduire l'enfer de cache du MJ Toolkit — aucun respondWith) + enregistrement dans index.html.
+- **_setup/GUIDE_APK.md** : pas à pas PWABuilder (Package ID io.github.hntlab.biiingo, sauvegarde OBLIGATOIRE de la clé ×2, dépôt `hnt-lab.github.io` pour assetlinks — je pousserai le fichier quand l'utilisateur me donne son contenu, installation sideload).
+- `node --check` OK. Version + __B = 0.14.1.
+
+### ⏳ EN ATTENTE UTILISATEUR (bloquants pour finir le sprint)
+1. Firebase : ajouter `hnt-lab.github.io` aux domaines autorisés (Auth → Settings) — sinon LOGIN CASSÉ sur le nouveau domaine.
+2. Firebase : republier les règles (_setup/firestore.rules — resserrées v0.14.0).
+3. PWABuilder : générer le zip APK (guide) + sauvegarder la clé + m'envoyer assetlinks.json.
+4. GitHub : créer le dépôt public `hnt-lab.github.io`.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
