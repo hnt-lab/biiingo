@@ -177,6 +177,12 @@ Info utilisateur : la méthode courante = Chromecast / Smart TV **via la fonctio
 
 ---
 
+# IDÉE 3 — APK « instance à part » via Capacitor (noté 2026-06-25)
+Question utilisateur : l'APK TWA « se lance via Chrome » — pourra-t-il un jour être une instance autonome ?
+- **Oui : Capacitor** (open source MIT) = moteur d'affichage embarqué, indépendant de Chrome, session/stockage propres.
+- Compromis : toolchain Android locale (~1 Go) à installer, re-build de l'APK à chaque changement de coquille (icône/nom), reconnexion des MC (session séparée de Chrome). En config « URL distante », les MAJ du site restent instantanées.
+- **Décision : TWA conservée pour la v1** (légère, auto-MAJ, déjà livrée). Capacitor = évolution possible, surtout si visée Play Store « native ». Non priorisé.
+
 # IDÉE 2 — DESIGN FIGÉ, PRÊT À CODER AU GO (2026-06-25)
 Décision utilisateur : **Android prioritaire, mais on couvre les deux plateformes.** La brique 1 étant universelle, l'iPhone est couvert via le navigateur de la Smart TV.
 
