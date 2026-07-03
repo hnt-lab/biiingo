@@ -19,6 +19,12 @@ const PHOTO_WARN_BYTES = 180000; // avertir si une photo dépasse ~180 Ko après
 
 const NB_NUMEROS = 90;
 
+// ---- Mode joueur ----
+const JETONS_PRESETS = ['🔴', '💖', '⭐', '💋', '🍀', '💀']; // styles de jetons proposés
+const JETON_IMG_SIZE = 128;          // px — jeton créé à partir d'une image (rond bordé)
+const SECOUSSE_SEUIL = 5;            // m/s² — au-delà, les jetons se décrochent (hardcore)
+const JOUEUR_MAX_CARTONS = 4;
+
 // Sons personnalisés (envoyés depuis l'app, stockés avec le compte)
 const SOUND_MAX_BYTES = 700000; // ~700 Ko max par son (limite technique de la base)
 const SONS_LISTE = [

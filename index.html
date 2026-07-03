@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biiingo">
   <!-- Anti-cache : version des fichiers bumpée à chaque déploiement (BUILD) -->
-  <script>window.__B='1.0.1';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
+  <script>window.__B='1.1.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
   <noscript><link rel="stylesheet" href="css/main.css"></noscript>
 </head>
 <body>
@@ -75,6 +75,7 @@
   <div id="salleScreen" class="screen salle">
     <div id="salleContent"></div>
     <div id="salleBandeau" class="bandeau"></div>
+    <div id="salleQrPopup" class="salle-qr-popup"></div>
     <button class="salle-exit" onclick="salleQuit()" title="Quitter l'affichage">✕</button>
     <button id="salleFs" class="salle-fs" onclick="salleToggleFs()" title="Plein écran">⛶</button>
     <button id="salleReady" class="salle-ready hide" onclick="salleReadyClick()">🔊 Plein écran &amp; son</button>
@@ -85,6 +86,27 @@
     <header id="mcHeader" class="mc-header"></header>
     <main id="mcContent" class="mc-content"></main>
     <nav id="mcTabs" class="mc-tabs"></nav>
+  </div>
+
+  <!-- Rejoindre une soirée en tant que JOUEUR (arrivée par QR/lien) -->
+  <div id="joinScreen" class="screen">
+    <div class="auth-card">
+      <div class="logo">Biiingo<span class="logo-spark">✨</span></div>
+      <p class="center muted">Tu rejoins la soirée <b id="joinCodeLabel"></b> 🎉</p>
+      <label class="field"><span>Ton prénom / surnom</span>
+        <input id="joinNom" type="text" maxlength="30" placeholder="Jacqueline"></label>
+      <button class="btn block primary big" onclick="joueurRejoindreInvite()">🎟 Jouer en invité</button>
+      <p class="center muted small" style="margin:10px 0 4px">— ou —</p>
+      <button class="btn block" onclick="joueurRejoindreCompte()">👤 Mon compte Biiingo</button>
+      <p class="center muted small">Avec un compte, tes stats et tes jetons persos te suivent à chaque soirée.</p>
+    </div>
+  </div>
+
+  <!-- Vue JOUEUR (paysage) -->
+  <div id="joueurScreen" class="screen joueur">
+    <main id="joueurContent"></main>
+    <div id="joueurBandeau" class="bandeau"></div>
+    <div class="tourne-tel">🔄<br>Tourne ton téléphone<br><span class="muted small">Le carton se joue en paysage !</span></div>
   </div>
 
   <!-- Modale générique -->
@@ -100,6 +122,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 
   <!-- Service worker SANS cache (requis pour l'installation en app / APK) -->
   <script>
@@ -109,7 +132,7 @@
   <!-- Application (scripts séquentiels, versionnés anti-cache) -->
   <script>
     (function () {
-      var files = ['version', 'config', 'sons', 'firebase', 'auth', 'core', 'anims', 'salle', 'verification', 'mc', 'editeur', 'tuto', 'profil'];
+      var files = ['version', 'config', 'sons', 'firebase', 'auth', 'core', 'anims', 'salle', 'verification', 'mc', 'editeur', 'tuto', 'profil', 'cartons', 'jetons', 'joueur'];
       for (var i = 0; i < files.length; i++) {
         document.write('<script src="js/' + files[i] + '.js?v=' + window.__B + '"><\/script>');
       }

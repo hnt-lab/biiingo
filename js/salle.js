@@ -107,7 +107,7 @@ function renderSalle(s, prev) {
 
   if (rebuilt && s.etat !== 'verification') AnimVerdict.stop();
 
-  if (s.etat === 'accueil') c.innerHTML = salleAccueilHtml(s);
+  if (s.etat === 'accueil') { c.innerHTML = salleAccueilHtml(s); salleMakeQrJoin(s); }
   else if (s.etat === 'tirage') renderSalleTirage(s, prev, rebuilt);
   else if (s.etat === 'verification') {
     // On ne reconstruit l'écran que si la vérification a changé (sinon l'animation serait coupée)
@@ -127,6 +127,7 @@ function renderSalle(s, prev) {
   else if (s.etat === 'fin') { c.innerHTML = salleFinHtml(s); salleMakeQr(s); salleHofScroll(); }
 
   renderBandeau(s);
+  renderQrPopup(s);
   salleUpdateReadyBtn();
 }
 
@@ -140,7 +141,43 @@ function salleAccueilHtml(s) {
     <h1 class="salle-titre-event">${gradTxt(s.titre)}</h1>
     <p class="salle-soustitre">${e.texte ? esc(e.texte) : 'Ça commence bientôt… ✨'}</p>
     <div class="salle-dots"><span></span><span></span><span></span></div>
+    ${s.joueursActif !== false ? `
+    <div class="salle-qr-coin">
+      <div id="qrAccueil"></div>
+      <span>📱 Scanne pour jouer !</span>
+    </div>` : ''}
   </div>`;
+}
+
+// URL que les joueurs scannent pour rejoindre
+function salleJoinUrl(s) {
+  return location.origin + location.pathname + '?join=' + encodeURIComponent(s.code);
+}
+
+function salleMakeQrJoin(s) {
+  const box = $('#qrAccueil');
+  if (!box || !window.QRCode || box.childNodes.length) return;
+  try {
+    new QRCode(box, { text: salleJoinUrl(s), width: 150, height: 150, colorDark: '#1a1426', colorLight: '#ffffff' });
+  } catch (e) {}
+}
+
+// Popup QR à la demande de l'animateur, par-dessus n'importe quel écran
+function renderQrPopup(s) {
+  const el = $('#salleQrPopup');
+  const visible = !!s.qrPopup && s.joueursActif !== false;
+  el.classList.toggle('show', visible);
+  if (visible && !el.dataset.code) {
+    el.dataset.code = s.code;
+    el.innerHTML = `<div class="qr-popup-carte">
+      <div id="qrPopupBox"></div>
+      <div class="qr-popup-txt">📱 Rejoins la partie !<br><b>${esc(s.code)}</b></div>
+    </div>`;
+    try {
+      new QRCode($('#qrPopupBox'), { text: salleJoinUrl(s), width: 220, height: 220, colorDark: '#1a1426', colorLight: '#ffffff' });
+    } catch (e) {}
+  }
+  if (!visible) { el.dataset.code = ''; el.innerHTML = ''; }
 }
 
 // ---------- État : TIRAGE ----------

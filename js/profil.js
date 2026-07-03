@@ -12,6 +12,16 @@ function profilModal() {
     <button class="btn block" onclick="profSavePseudo()">💾 Enregistrer le pseudo</button>
     <p class="muted small" style="margin-top:10px">Email du compte : <b>${esc(email)}</b></p>
     <hr class="ed-sep">
+    <p class="muted small">🎟 Mon jeton de joueur (posé sur mes cartons quand je joue) :</p>
+    <div class="jeton-choix">
+      ${JETONS_PRESETS.map(e => `<button class="jeton-btn ${S.profile && S.profile.jeton && S.profile.jeton.type === 'emoji' && S.profile.jeton.val === e ? 'on' : ''}"
+        onclick="profJeton({type:'emoji',val:'${e}'})">${e}</button>`).join('')}
+      ${S.profile && S.profile.jeton && S.profile.jeton.type === 'image' ? `<span class="jeton-btn on img" style="background-image:url(${escAttr(S.profile.jeton.val)})"></span>` : ''}
+      <input type="file" id="profJetonImg" accept="image/*" style="display:none" onchange="profJetonImage(this)">
+      <button class="jeton-btn" onclick="$('#profJetonImg').click()" title="Créer mon jeton à partir d'une image">📷</button>
+    </div>
+    ${S.profile && S.profile.stats ? `<p class="muted small">🎉 ${S.profile.stats.participations || 0} soirée(s) jouée(s) · 🏆 ${S.profile.stats.victoires || 0} victoire(s)</p>` : ''}
+    <hr class="ed-sep">
     <button class="btn block" onclick="profChangePwdModal()">🔑 Changer mon mot de passe</button>
     <button class="btn block" onclick="tutoModal()">📖 Revoir le tutoriel</button>
     <button class="btn block" onclick="confirmAction('Se déconnecter ?','Déconnexion','closeModal();doLogout()')">🚪 Se déconnecter</button>
@@ -35,6 +45,22 @@ async function profSavePseudo() {
   } catch (e) {
     toast('Enregistrement impossible. Vérifie ta connexion.');
   }
+}
+
+// ---------- Jeton de joueur personnalisé ----------
+async function profJeton(jeton) {
+  try {
+    await db.collection('users').doc(S.user.uid).set({ jeton }, { merge: true });
+    S.profile = S.profile || {};
+    S.profile.jeton = jeton;
+    toast('Jeton enregistré 🎟');
+    profilModal();
+  } catch (e) { toast('Enregistrement impossible.'); }
+}
+
+async function profJetonImage(input) {
+  const data = await compressImageCircle(input.files[0], JETON_IMG_SIZE);
+  if (data) profJeton({ type: 'image', val: data });
 }
 
 // ---------- Changement de mot de passe ----------
