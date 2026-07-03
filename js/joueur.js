@@ -129,18 +129,35 @@ function joueurRender() {
   // Victoire qui me correspond ? (le MC a validé mon nom)
   joueurDetecteVictoire();
 
-  const rebuild = J.etatAffiche !== etat;
-  J.etatAffiche = etat;
-  if (etat === 'tirage') { joueurRenderJeu(rebuild); }
+  // La vérification se vit PAR-DESSUS le carton (jetons gelés), pas à la place
+  const etatVue = etat === 'verification' ? 'tirage' : etat;
+  const rebuild = J.etatAffiche !== etatVue;
+  J.etatAffiche = etatVue;
+  if (etatVue === 'tirage') { joueurRenderJeu(rebuild); }
   else if (rebuild) {
+    J.marques[J.actif] = new Set([...Jetons.marked]); // ne pas perdre les poses en quittant le carton
     Jetons.destroy();
-    if (etat === 'elimine') joueurRenderElimine();
-    else if (etat === 'entracte') joueurRenderSimple('🎭', esc((s.entracte && s.entracte.nom) || 'Entracte'), 'On se retrouve juste après le spectacle !');
-    else if (etat === 'fin') joueurRenderFin();
-    else if (etat === 'verification') joueurRenderSimple('🥁', 'Vérification en cours…', 'Quelqu\'un a peut-être gagné !');
+    if (etatVue === 'elimine') joueurRenderElimine();
+    else if (etatVue === 'entracte') joueurRenderSimple('🎭', esc((s.entracte && s.entracte.nom) || 'Entracte'), 'On se retrouve juste après le spectacle !');
+    else if (etatVue === 'fin') joueurRenderFin();
     else joueurRenderSimple('✨', esc(s.titre), 'Ça commence bientôt — garde ton carton prêt !');
   }
+  joueurRenderVerifOverlay(etat === 'verification');
   joueurRenderBandeau();
+}
+
+// Pendant la vérif : voile semi-transparent (le carton reste visible dessous) + jetons gelés
+function joueurRenderVerifOverlay(actif) {
+  const el = $('#joueurVerif');
+  if (!el) return;
+  Jetons.freeze(actif);
+  el.classList.toggle('show', actif);
+  if (actif) {
+    const v = (J.soiree && J.soiree.verification) || {};
+    const moi = v.joueurUid === J.uid;
+    el.innerHTML = `<div class="jv-carte">🥁 Vérification en cours…<br>
+      <b>${moi ? 'C\'est TON carton qu\'on vérifie 🤞' : 'Les jetons sont gelés un instant'}</b></div>`;
+  } else el.innerHTML = '';
 }
 
 function joueurRenderJeu(rebuild) {
@@ -150,25 +167,72 @@ function joueurRenderJeu(rebuild) {
   const last = (s.tires || []).length ? s.tires[s.tires.length - 1] : '—';
 
   if (rebuild || !$('#cartonGrille')) {
-    const minis = J.cartons.map((_, i) =>
-      `<div class="carton-mini ${i === J.actif ? 'on' : ''}" onclick="joueurVaCarton(${i})">C${i + 1}</div>`).join('');
     c.innerHTML = `
       <div class="joueur-haut">
-        <span class="joueur-obj">${s.objectif === 'lose' ? '💀' : '🎯'} ${obj.label}</span>
+        <span class="joueur-obj" id="joueurObj"></span>
         <span class="joueur-dernier" id="joueurDernier">${last}</span>
-        <button class="btn icon small" onclick="confirmAction('Quitter la partie ?','Quitter','joueurQuitter()')">✕</button>
+        <span>
+          <button class="btn icon small" onclick="joueurChangerCartonsModal()" title="Changer mes cartons">🎴</button>
+          <button class="btn icon small" onclick="confirmAction('Quitter la partie ?','Quitter','joueurQuitter()')">✕</button>
+        </span>
       </div>
       <div class="joueur-aire" id="joueurAire">
-        <div class="carton-minis">${J.cartons.length > 1 ? minis : ''}</div>
+        <div class="carton-minis" id="cartonMinis"></div>
         <div class="carton-grille" id="cartonGrille"></div>
-        <div class="jetons-reserve"></div>
+        <div class="jetons-reserve"><span class="reserve-tag">🛟</span></div>
       </div>`;
     joueurMonteCarton();
   }
+  // Objectif TOUJOURS à jour (il change en direct quand l'animateur le modifie)
+  const objTxt = `${s.objectif === 'lose' ? '💀' : '🎯'} ${obj.label}`;
+  const objEl = $('#joueurObj');
+  if (objEl.textContent !== objTxt) {
+    objEl.textContent = objTxt;
+    if (J._objPrec && J._objPrec !== s.objectif) J.alertes = {}; // nouvel objectif = nouvelles alertes
+  }
+  J._objPrec = s.objectif;
   $('#joueurDernier').textContent = last;
   const d = $('#joueurDernier');
   d.classList.remove('bump'); void d.offsetWidth; d.classList.add('bump');
+  joueurMajMinis();
   joueurMajHalos();
+}
+
+// Miniatures : un vrai mini-carton par carton (cases marquées remplies)
+function joueurMajMinis() {
+  const box = $('#cartonMinis');
+  if (!box) return;
+  if (J.cartons.length < 2) { box.innerHTML = ''; return; }
+  box.innerHTML = J.cartons.map((carton, i) => {
+    const marques = i === J.actif ? Jetons.marked : J.marques[i];
+    let cells = '';
+    for (let r = 0; r < 3; r++) for (let col = 0; col < 9; col++) {
+      const n = carton[r][col];
+      cells += `<i class="${n ? (marques && marques.has(n) ? 'm' : 'n') : 'v'}"></i>`;
+    }
+    return `<div class="carton-mini ${i === J.actif ? 'on' : ''}" onclick="joueurVaCarton(${i})">${cells}</div>`;
+  }).join('');
+}
+
+// Le joueur choisit LUI-MÊME de changer ses cartons (jamais automatique)
+function joueurChangerCartonsModal() {
+  confirmAction(
+    'Changer tes cartons ?<br><span class="muted">Tu recevras de NOUVEAUX cartons — les anciens sont perdus (les habitués gardent souvent les mêmes toute la soirée 😉).</span>',
+    '🎴 Nouveaux cartons', 'joueurChangerCartons()');
+}
+
+async function joueurChangerCartons() {
+  const s = J.soiree;
+  const nb = Math.min(JOUEUR_MAX_CARTONS, Math.max(1, s.nbCartons || 1));
+  J.cartons = genCartons(nb);
+  J.marques = J.cartons.map(() => new Set());
+  J.alertes = {}; J.actif = 0;
+  Jetons.aidHalo = new Set();
+  await db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
+    .update({ cartons: cartonsVersDb(J.cartons) }).catch(() => {});
+  J.etatAffiche = null;
+  joueurRender();
+  toast('Nouveaux cartons distribués 🎴');
 }
 
 // Construit la grille du carton actif + branche la physique
@@ -281,7 +345,7 @@ function joueurRenderElimine() {
         <div class="elim-skull">💀</div>
         <div class="elim-titre">ÉLIMINÉ·E !</div>
         <p>Le ${J.numeroFatal || '?'} t'a été fatal…</p>
-        <button class="btn primary" onclick="joueurSpectateur()">👀 Rester regarder</button>
+        <button class="btn primary" onclick="joueurSpectateur()">↩ Revenir à mon carton</button>
       </div>
     </div>`;
 }
@@ -292,14 +356,13 @@ function joueurSpectateur() {
 }
 
 function joueurNouvelleManche() {
-  const s = J.soiree;
-  const nb = Math.min(JOUEUR_MAX_CARTONS, Math.max(1, s.nbCartons || 1));
-  J.cartons = genCartons(nb);
+  // Les joueurs GARDENT leurs cartons (habitude des habitués) — seuls les marquages repartent à zéro.
+  // Changer de cartons = choix du joueur (bouton 🎴).
   J.marques = J.cartons.map(() => new Set());
-  J.alertes = {}; J.elimine = false; J.actif = 0;
+  J.alertes = {}; J.elimine = false;
   Jetons.aidHalo = new Set();
   db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
-    .update({ cartons: cartonsVersDb(J.cartons), elimine: false }).catch(() => {});
+    .update({ elimine: false }).catch(() => {});
   J.etatAffiche = null;
 }
 
@@ -315,7 +378,9 @@ function joueurDetecteVictoire() {
       if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 300]);
       db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
         .update({ wins: FV.increment(1) }).catch(() => {});
-      if (!J.invite) db.collection('users').doc(J.uid).set({ stats: { victoires: FV.increment(1) } }, { merge: true }).catch(() => {});
+      // Stats détaillées par type de victoire (quine / double / carton / lose)
+      const type = ['quine', 'double', 'carton', 'lose'].includes(s.objectif) ? s.objectif : 'quine';
+      if (!J.invite) db.collection('users').doc(J.uid).set({ stats: { [type]: FV.increment(1) } }, { merge: true }).catch(() => {});
       joueurBanniere(`🎉 Bravo ${esc(J.nom)}, victoire validée !${J.invite ? '<br><small>Crée ton compte à la fin pour garder tes stats ✨</small>' : ''}`, 'victoire');
     }
   }
@@ -356,9 +421,10 @@ function joueurNudgeCompte() {
 
 // ---------- Bandeau de l'animateur ----------
 function joueurRenderBandeau() {
+  // Sur mobile, le bandeau gêne le carton → visible UNIQUEMENT hors tirage (entracte/fin)
   const s = J.soiree;
   const b = (s && s.bandeau) || {};
-  const visible = !!b.texte && (s.etat === 'entracte' || s.etat === 'fin' || (s.etat === 'tirage' && b.actif));
+  const visible = !!b.texte && (s.etat === 'entracte' || s.etat === 'fin');
   const el = $('#joueurBandeau');
   if (!el) return;
   el.classList.toggle('show', visible);

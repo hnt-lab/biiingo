@@ -22,7 +22,7 @@ const NB_NUMEROS = 90;
 // ---- Mode joueur ----
 const JETONS_PRESETS = ['🔴', '💖', '⭐', '💋', '🍀', '💀']; // styles de jetons proposés
 const JETON_IMG_SIZE = 128;          // px — jeton créé à partir d'une image (rond bordé)
-const SECOUSSE_SEUIL = 5;            // m/s² — au-delà, les jetons se décrochent (hardcore)
+const SECOUSSE_SEUIL = 12;           // m/s² — au-delà, les jetons se décrochent (hardcore, mais pas nerveux)
 const JOUEUR_MAX_CARTONS = 4;
 
 // Sons personnalisés (envoyés depuis l'app, stockés avec le compte)

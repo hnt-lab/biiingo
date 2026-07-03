@@ -831,3 +831,62 @@ a { color: var(--rose); }
 .qr-popup-txt { margin-top: 10px; font-weight: 700; }
 
 .mc-head-joueurs { color: var(--rose); font-weight: 700; white-space: nowrap; }
+
+/* ===== v1.2 : retours de test du mode joueur ===== */
+
+/* Overlay vérification côté joueur : semi-transparent, le carton reste visible dessous */
+.joueur-verif {
+  display: none; position: absolute; inset: 0; z-index: 55;
+  background: #14101eaa; align-items: center; justify-content: center;
+}
+.joueur-verif.show { display: flex; }
+.jv-carte {
+  background: #2d2244ee; border: 2px solid var(--or); border-radius: 18px;
+  padding: 16px 26px; text-align: center; font-size: 1.1em; line-height: 1.6;
+  animation: ctaPop .3s ease;
+}
+
+/* Réservoir : repère visuel + tag bouée */
+.jetons-reserve { background: #00000033; border-left: 3px solid var(--bord); }
+.reserve-tag { position: absolute; top: 4px; right: 8px; opacity: .35; font-size: 1.1em; }
+
+/* Vraies miniatures de cartons (grille 9×3 min.) */
+.carton-mini {
+  width: 54px; height: 26px; border-radius: 6px; border: 1px solid var(--bord);
+  background: var(--carte); cursor: pointer; padding: 2px;
+  display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(3, 1fr); gap: 1px;
+}
+.carton-mini.on { border-color: var(--rose); box-shadow: 0 0 8px #ff5fa255; }
+.carton-mini i { border-radius: 1px; background: #fdf6e3; }
+.carton-mini i.v { background: transparent; }
+.carton-mini i.m { background: var(--rose); }
+
+/* Chips joueurs connectés (écran de lancement de vérif) */
+.joueur-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.joueur-chip {
+  background: var(--carte); border: 1px solid var(--or); color: var(--texte);
+  border-radius: 20px; padding: 8px 14px; font-size: .95em; cursor: pointer;
+}
+.joueur-chip.elim { opacity: .55; border-color: var(--bord); }
+
+/* Carton affiché pendant la vérif (côté MC) */
+.verif-carton {
+  display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; margin-bottom: 10px;
+}
+.vcase {
+  aspect-ratio: 1; border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: clamp(11px, 3.2vw, 16px);
+}
+.vcase.vide { background: var(--bg2); opacity: .4; }
+.vcase.ok { background: #1d5a39; border: 1px solid var(--ok); color: #b8ffd9; }
+.vcase.ko { background: #5d2330; border: 1px solid var(--ko); color: #ffc4c9; }
+
+/* Télécommande sur PC / grand écran : on respire */
+@media (min-width: 900px) {
+  .mc-content { max-width: 900px; padding: 20px 28px; }
+  .mc-header, .mc-tabs { padding-left: calc(50vw - 450px); padding-right: calc(50vw - 450px); }
+  .mc-grille { gap: 8px; }
+  .mc-cell { font-size: 19px; border-radius: 10px; }
+  .mc-tab { font-size: .85em; }
+  .mc-tab .mc-tab-ico { font-size: 1.9em; }
+}
