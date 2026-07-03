@@ -241,6 +241,12 @@
 - ⚠️ Règle Firestore `feedback` (create only) ajoutée → À REPUBLIER.
 - `node --check` 17/17 OK. Version + __B = 1.3.0.
 
+## 2026-07-04 — v1.4.0 : IDÉE 2 codée (affichage public + Caster) — soirée 100 % sans PC
+- **Brique 1 — `?display=CODE`** : un écran quelconque (Smart TV à navigateur, tablette, PC) ouvre le lien → connexion anonyme invisible → vue salle en lecture seule (rendu/sons/médias existants réutilisés). Session `biiingo_display` → F5 de la TV = retour direct. Quitter (✕) = reset propre. Routage auth : display prioritaire sur joueur ; marche aussi connecté à un compte. **AUCUNE modification des règles nécessaire** (l'auth anonyme du mode joueur couvre le cas — plus élégant que le design initial).
+- **Brique 2 — « 📺 Caster sur la TV »** (⚙️ Soirée, affiché si l'API existe) : PresentationRequest(displayUrl) ; échec/refus → repli auto sur le modal « 🔗 Lien pour un écran » (QR + lien copiable), qui couvre Smart TV/iPhone.
+- `node --check` OK. Version + __B = 1.4.0.
+- À TESTER terrain : Chromecast réel (bouton Caster), navigateur de Smart TV (perfs vieux navigateurs TV ?), reprise F5 TV, son sur TV (clic « activer le son » avec la télécommande TV).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

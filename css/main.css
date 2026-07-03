@@ -919,3 +919,7 @@ a { color: var(--rose); }
   /* Barre flottante de verdict : centrée, pas pleine largeur */
   .verif-cta.float { left: 50%; right: auto; transform: translateX(-50%); min-width: 520px; bottom: 26px; }
 }
+
+/* ===== Idee 2 : affichage public / caster ===== */
+.ecran-qr { display: flex; justify-content: center; margin: 12px 0; }
+.ecran-qr > div { background: #fff; padding: 12px; border-radius: 14px; }

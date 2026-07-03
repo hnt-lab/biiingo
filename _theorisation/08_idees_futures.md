@@ -216,4 +216,4 @@ Décision utilisateur : **Android prioritaire, mais on couvre les deux plateform
 - Le miroir d'écran pur ne sera jamais « propre » (limite physique, pas un bug).
 
 ---
-*Statut : idée 2 — DESIGN COMPLET ET FIGÉ, prêt à coder. Android prio + couverture des deux via la brique 1 universelle. AUCUN dev tant que l'utilisateur n'a pas dit « déploie ». Au GO : commencer par la Brique 1.*
+*Statut : ✅ **IDÉE 2 CODÉE EN v1.4.0** (GO utilisateur 2026-07-04). Brique 1 = `?display=CODE` (connexion anonyme invisible — pas d'ouverture des règles, plus élégant que prévu) + modal « 🔗 Lien pour un écran » (QR + copie). Brique 2 = bouton « 📺 Caster sur la TV » (Presentation API, repli auto sur le modal lien/QR). Reste : test terrain (Smart TV, Chromecast, Android).*

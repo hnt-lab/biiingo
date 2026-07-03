@@ -4,17 +4,29 @@ function initAuth() {
   fauth.onAuthStateChanged(async (user) => {
     S.user = user;
 
-    // ----- Parcours JOUEUR -----
-    let jSess = null;
+    // ----- Parcours JOUEUR / ÉCRAN PUBLIC -----
+    let jSess = null, dSess = null;
     try { jSess = JSON.parse(localStorage.getItem('biiingo_joueur') || 'null'); } catch (e) {}
+    try { dSess = JSON.parse(localStorage.getItem('biiingo_display') || 'null'); } catch (e) {}
 
     if (!user) {
+      // Écran public (?display=CODE ou session TV) : connexion anonyme invisible puis affichage
+      if (window.__displayCode || (dSess && dSess.code)) {
+        fauth.signInAnonymously().catch(() => {
+          showScreen('loadScreen');
+          $('#loadMsg').textContent = 'Connexion impossible — vérifie le réseau puis recharge.';
+        });
+        return; // le listener se redéclenchera avec l'utilisateur anonyme
+      }
       if (window.__joinCode) { joueurInit(window.__joinCode); return; } // écran « rejoindre »
       showScreen('authScreen');
       return;
     }
 
     if (user.isAnonymous) {
+      // Écran public d'abord (prioritaire sur le parcours joueur)
+      if (window.__displayCode) { displayEnter(window.__displayCode); return; }
+      if (dSess && dSess.code && !window.__joinCode) { displayEnter(dSess.code); return; }
       // Un invité : reprise de partie si session, sinon écran rejoindre, sinon on nettoie
       if (window.__joinCode && !jSess) { joueurInit(window.__joinCode); return; }
       if (jSess && jSess.code) {
@@ -25,6 +37,9 @@ function initAuth() {
       fauth.signOut(); // anonyme orphelin → retour connexion
       return;
     }
+
+    // Compte normal arrivé par un lien d'affichage : on lance l'écran public aussi
+    if (window.__displayCode) { displayEnter(window.__displayCode); return; }
 
     // ----- Compte normal -----
     try {

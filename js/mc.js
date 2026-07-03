@@ -234,6 +234,11 @@ function mcSoireeHtml(s) {
     ${s.joueursActif !== false ? `
     <button class="btn block ${s.qrPopup ? 'primary' : ''}" onclick="soireeUpdate({qrPopup:${s.qrPopup ? 'false' : 'true'}})">
       ${s.qrPopup ? '📱 Masquer le QR en salle' : '📱 Afficher le QR en salle (rejoindre)'}</button>` : ''}
+    <div class="mc-actions-row" style="margin-top:10px">
+      ${'PresentationRequest' in window ? `<button class="btn" onclick="mcCasterTV()">📺 Caster sur la TV</button>` : ''}
+      <button class="btn" onclick="mcEcranModal()">🔗 Lien pour un écran</button>
+    </div>
+    <p class="muted small">Pas besoin de PC : une Smart TV ou un Chromecast peut afficher le tableau tout seul.</p>
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">🔊 Son de la salle</h3>
@@ -281,6 +286,54 @@ function mcJoueursModal() {
     <h3>👥 Joueurs connectés (${S.nbJoueurs || 0})</h3>
     ${rows || '<p class="muted">Personne pour l\'instant — affiche le QR en salle !</p>'}
     <div class="modal-btns"><button class="btn primary" onclick="closeModal()">Fermer</button></div>`);
+}
+
+// ---------- Idée 2 : afficher la soirée sur un écran sans compte ----------
+function mcDisplayUrl() {
+  return location.origin + location.pathname + '?display=' + encodeURIComponent(S.soiree.code);
+}
+
+// Brique 2 — bouton Caster (Chrome Android + Chromecast). Repli : le modal lien/QR.
+let mcPresentation = null;
+function mcCasterTV() {
+  try {
+    const req = new PresentationRequest([mcDisplayUrl()]);
+    req.start().then(conn => {
+      mcPresentation = conn;
+      toast('Tableau envoyé sur la TV 📺');
+    }).catch(() => {
+      // refus/annulation/pas d'écran trouvé → on propose le lien et le QR
+      mcEcranModal();
+    });
+  } catch (e) {
+    mcEcranModal();
+  }
+}
+
+// Brique 1 — lien + QR d'affichage public (Smart TV avec navigateur, tablette, PC…)
+function mcEcranModal() {
+  const url = mcDisplayUrl();
+  modal(`
+    <h3>🔗 Afficher la soirée sur un écran</h3>
+    <p class="muted small">Ouvre ce lien sur N'IMPORTE QUEL écran connecté (navigateur de Smart TV,
+    tablette, PC…) : le tableau s'affiche tout seul, sans compte.</p>
+    <div class="ecran-qr"><div id="ecranQrBox"></div></div>
+    <label class="field"><span>Le lien (à taper ou envoyer sur la TV)</span>
+      <input id="ecranUrl" type="text" readonly value="${escAttr(url)}" onclick="this.select()"></label>
+    <div class="modal-btns">
+      <button class="btn" onclick="mcCopieUrl()">📋 Copier le lien</button>
+      <button class="btn primary" onclick="closeModal()">Fermer</button>
+    </div>`);
+  try {
+    new QRCode($('#ecranQrBox'), { text: url, width: 170, height: 170, colorDark: '#1a1426', colorLight: '#ffffff' });
+  } catch (e) {}
+}
+
+function mcCopieUrl() {
+  const el = $('#ecranUrl');
+  el.select();
+  try { navigator.clipboard.writeText(el.value).then(() => toast('Lien copié 📋')); }
+  catch (e) { document.execCommand('copy'); toast('Lien copié 📋'); }
 }
 
 function mcAfficherFin() { soireeUpdate({ etat: 'fin' }); }
