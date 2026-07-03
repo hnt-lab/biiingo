@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biiingo">
   <!-- Anti-cache : version des fichiers bumpée à chaque déploiement (BUILD) -->
-  <script>window.__B='0.14.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
+  <script>window.__B='0.14.1';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
   <noscript><link rel="stylesheet" href="css/main.css"></noscript>
 </head>
 <body>
@@ -99,6 +99,11 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- Service worker SANS cache (requis pour l'installation en app / APK) -->
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+  </script>
 
   <!-- Application (scripts séquentiels, versionnés anti-cache) -->
   <script>
