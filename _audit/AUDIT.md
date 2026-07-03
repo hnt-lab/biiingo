@@ -189,6 +189,12 @@
 - **Résolution** : (1) paquet déplacé hors dépôt → `Bureau\Biiingo-CLES-APK-NE-PAS-SUPPRIMER\` ; (2) .gitignore blindé (*.keystore, *.apk, *.aab, signing-key-info.txt) ; (3) historique réécrit + push forcé (autorisé par l'utilisateur) ; (4) **clé considérée compromise → RÉGÉNÉRÉE** via PWABuilder (rien n'était distribué → coût nul) ; (5) assetlinks.json mis à jour avec la nouvelle empreinte (EF:D3:E4:…) et poussé sur hnt-lab.github.io.
 - L'ancien APK (1re clé) est à jeter ; seule la nouvelle génération fait foi.
 
+## 2026-06-25 — 🏆 v1.0.0 — FEUILLE DE TEST V1 : TOUT VERT
+- L'utilisateur a validé l'intégralité de FEUILLE_DE_TEST_V1.md : comptes (reset mdp, profil, changement mdp, suppression avec compte de test), sécurité, régression, **APK installé sans barre d'adresse**, MAJ auto via deploy.bat confirmée sur téléphone, clé sauvegardée en double.
+- Sprint « v1 diffusable + APK » BOUCLÉ dans les délais (objectif : une semaine — fait en 1 jour de sessions).
+- Biiingo v1.0.0 = officiellement diffusable (APK hors store + site + PWA).
+- ⚠️ Seule vérification restante demandée à l'utilisateur : confirmer que les règles Firestore resserrées ont bien été REPUBLIÉES (les cases pré-requis étaient décochées ; le domaine est prouvé fait par la connexion, les règles ne sont pas prouvables par les tests passés).
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
