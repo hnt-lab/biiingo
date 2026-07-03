@@ -69,12 +69,14 @@
 - Coûts : n joueurs = n auditeurs temps réel → surveiller le palier gratuit Firebase (lié théorisation 10).
 - QR : généré avec la lib qrcodejs déjà intégrée (MIT ✓).
 
-## H. QUESTIONS ENCORE OUVERTES (avant GO code)
-1. Sons/vibrations côté joueur ? (proposition : vibration légère au numéro tiré + à l'alerte quine,
-   pas de son — les téléphones sonores en salle = cacophonie)
-2. Multi-cartons : balayage entre cartons ou mosaïque ? (proposition : balayage + points de position)
-3. Le QR de la soirée : affiché seulement à l'accueil, ou aussi pendant la partie (coin) ?
-4. L'animateur voit-il la LISTE des joueurs connectés (compteur « 42 joueurs » sur sa télécommande) ?
-5. Un invité peut-il « réclamer » ses stats plus tard en créant un compte (fusion par prénom) ? (v2 ?)
+## H. QUESTIONS TRANCHÉES ✅ (réponses utilisateur 2026-06-25)
+1. **Vibration uniquement** côté joueur (numéro tiré + alerte quine). Aucun son.
+2. **Balayage** entre cartons + **miniatures des autres cartons en picture-in-picture**.
+3. QR : **écran d'accueil uniquement** en automatique + **bouton animateur** qui affiche le QR
+   **en popup sur n'importe quel écran de salle** à la demande (retardataires).
+4. **Oui** : compteur de joueurs connectés visible par l'animateur.
+5. **Oui** : un invité doit pouvoir récupérer ses stats en créant un compte — et **l'app doit
+   POUSSER à la création de compte** (nudges aux bons moments : après une victoire, en fin de
+   soirée — jamais bloquant).
 
-*Prochaine étape : réponses aux questions H → maquette écrans → GO utilisateur → code d'un bloc.*
+*Prochaine étape : maquettes d'écrans (doc 13) → validation utilisateur → GO → code d'un bloc.*
