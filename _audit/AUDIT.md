@@ -164,6 +164,14 @@
 ## 2026-06-25 — Idées futures notées
 - Voir `_theorisation/08_idees_futures.md` : (1) bingo entièrement personnalisable (nombre de cases + contenu + objectifs éditables), (2) config technique « un seul appareil » via stream/miroir d'écran vers rétroprojecteur/télé. Non priorisé, à théoriser plus tard.
 
+## 2026-06-25 — v0.14.0 : SPRINT v1 — Lot 1 (comptes + sécurité + migration hnt-lab)
+- **Migration** : remote git → hnt-lab/biiingo ✅. Théorisations 08/09 poussées. ⏳ Domaine Firebase (utilisateur).
+- **Mot de passe oublié** : lien sur l'écran de connexion → sendPasswordResetEmail (message neutre anti-énumération).
+- **Écran Profil (👤 accueil)** : pseudo modifiable, email affiché, changer mot de passe (reauth), revoir tuto, déconnexion (déplacée ici), **suppression de compte** (reauth + purge complète : soirées possédées + leurs médias, sons, registre, présets, profil, puis compte).
+- **Règles Firestore resserrées** : create = owner ; update = mcUids seulement, SAUF « rejoindre » (seule modif permise : s'ajouter soi-même à mcUids — diff/hasAll/size+1) ; delete = owner. ⚠️ À REPUBLIER par l'utilisateur.
+- **Règle permanente enregistrée (mémoire)** : bibliothèques libres de droit uniquement. Licences vérifiées : Firebase (Apache 2.0), qrcodejs (MIT), Bubblewrap (Apache 2.0).
+- `node --check` : 14/14 OK. Version + __B = 0.14.0.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biiingo">
   <!-- Anti-cache : version des fichiers bumpée à chaque déploiement (BUILD) -->
-  <script>window.__B='0.13.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
+  <script>window.__B='0.14.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
   <noscript><link rel="stylesheet" href="css/main.css"></noscript>
 </head>
 <body>
@@ -39,6 +39,7 @@
       <label class="field"><span>Mot de passe</span>
         <input id="authPwd" type="password" autocomplete="current-password" placeholder="••••••••"></label>
       <div id="authError" class="auth-error"></div>
+      <p id="authForgot" class="auth-forgot"><a href="#" onclick="doResetPwd();return false">Mot de passe oublié ?</a></p>
       <button id="authLoginBtn" class="btn block primary big" onclick="doLogin()">Se connecter ✨</button>
       <button id="authSignupBtn" class="btn block primary big" style="display:none" onclick="doSignup()">Créer mon compte 🎉</button>
       <p class="center">
@@ -53,9 +54,9 @@
     <header class="home-head">
       <div class="logo small">Biiingo<span class="logo-spark">✨</span></div>
       <div class="home-user"><span id="homePseudo"></span>
+        <button class="btn icon" onclick="profilModal()" title="Mon profil">👤</button>
         <button class="btn icon" onclick="appReload()" title="Recharger / mettre à jour">🔄</button>
         <button class="btn icon" onclick="tutoModal()" title="Aide / tutoriel">❓</button>
-        <button class="btn icon" onclick="confirmAction('Se déconnecter ?','Déconnexion','doLogout()')" title="Déconnexion">🚪</button>
       </div>
     </header>
     <main class="home-main">
@@ -102,7 +103,7 @@
   <!-- Application (scripts séquentiels, versionnés anti-cache) -->
   <script>
     (function () {
-      var files = ['version', 'config', 'sons', 'firebase', 'auth', 'core', 'anims', 'salle', 'verification', 'mc', 'editeur', 'tuto'];
+      var files = ['version', 'config', 'sons', 'firebase', 'auth', 'core', 'anims', 'salle', 'verification', 'mc', 'editeur', 'tuto', 'profil'];
       for (var i = 0; i < files.length; i++) {
         document.write('<script src="js/' + files[i] + '.js?v=' + window.__B + '"><\/script>');
       }
