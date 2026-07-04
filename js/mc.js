@@ -309,10 +309,18 @@ function mcCasterTV() {
         <p class="modal-msg muted small">Soit la fenêtre a été annulée, soit aucun <b>Chromecast</b> n'est
         joignable sur ce réseau. ⚠️ Les TV en simple « miroir d'écran » n'apparaissent pas ici — pour
         elles, utilise la méthode universelle (navigateur de la TV + code), qui marche partout.</p>
+        <p class="muted small">🔎 Diagnostic — récepteur Google Cast vu par Chrome : <b id="castDiag">détection…</b></p>
         <div class="modal-btns">
           <button class="btn ghost" onclick="closeModal()">Fermer</button>
           <button class="btn primary" onclick="closeModal();mcEcranModal()">📺 Méthode universelle</button>
         </div>`);
+      // Diagnostic asynchrone : dit à l'utilisateur si Chrome voit un récepteur (aide à trancher)
+      try {
+        new PresentationRequest([mcDisplayUrl()]).getAvailability().then(av => {
+          const maj = () => { const el = $('#castDiag'); if (el) el.textContent = av.value ? 'OUI ✅ (réessaie 📡)' : 'NON ❌ (miroir seul ou autre réseau)'; };
+          maj(); av.onchange = maj;
+        }).catch(() => { const el = $('#castDiag'); if (el) el.textContent = 'indisponible'; });
+      } catch (e) {}
     });
   } catch (e) {
     mcEcranModal();
