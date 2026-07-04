@@ -923,3 +923,10 @@ a { color: var(--rose); }
 /* ===== Idee 2 : affichage public / caster ===== */
 .ecran-qr { display: flex; justify-content: center; margin: 12px 0; }
 .ecran-qr > div { background: #fff; padding: 12px; border-radius: 14px; }
+
+/* Etapes TV (modal afficher sur un ecran) */
+.tv-etapes .tv-etape { margin: 8px 0; line-height: 1.5; }
+.tv-url {
+  display: inline-block; margin-top: 4px; background: var(--bg2); border: 1px solid var(--or);
+  border-radius: 8px; padding: 4px 12px; font-weight: 800; letter-spacing: .04em; color: var(--or);
+}

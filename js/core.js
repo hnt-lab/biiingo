@@ -60,6 +60,31 @@ function showScreen(id) {
   $('#' + id).classList.add('active');
 }
 
+// Saisie du code directement sur l'écran (le chemin simple pour les TV : site court + 4 lettres)
+function displayCodeModal() {
+  modal(`
+    <h3>📺 Afficher une soirée</h3>
+    <p class="muted small">Entre le code de la soirée (affiché sur la télécommande de l'animateur).</p>
+    <label class="field"><span>Code (4 lettres)</span>
+      <input id="displayCode" type="text" maxlength="4" autocapitalize="characters"
+             style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:1.5em"></label>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn primary big" onclick="displayLance()">📺 Afficher</button>
+    </div>`);
+  setTimeout(() => $('#displayCode').focus(), 50);
+}
+
+function displayLance() {
+  const code = $('#displayCode').value.trim().toUpperCase();
+  if (code.length !== CODE_LENGTH) { toast('Le code fait 4 lettres.'); return; }
+  closeModal();
+  // On mémorise puis on se connecte anonymement : le routage de connexion prend le relais
+  try { localStorage.setItem('biiingo_display', JSON.stringify({ code })); } catch (e) {}
+  if (fauth.currentUser) displayEnter(code);
+  else fauth.signInAnonymously().catch(() => toast('Connexion impossible — vérifie le réseau.'));
+}
+
 // ---------- Feedback utilisateur (retours d'expérience, lus dans la console Firebase) ----------
 function feedbackModal(origine) {
   modal(`
