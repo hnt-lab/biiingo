@@ -1,6 +1,6 @@
 # Feuille de test consolidée — Biiingo v0.1.0 (2026-06-12)
 
-> Matériel : le PC (idéalement celui de la salle) + un téléphone. Adresse : https://mickaelquintin13-lab.github.io/biiingo/
+> Matériel : le PC (idéalement celui de la salle) + un téléphone. Adresse (historique — depuis : hnt-lab.github.io/biiingo)
 > Noter chaque problème avec : l'écran, l'action faite, ce qui était attendu, ce qui s'est passé.
 > ⚠️ Les sons sont silencieux tant que les fichiers mp3 ne sont pas déposés dans sounds/ — c'est normal.
 

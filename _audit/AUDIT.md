@@ -35,7 +35,7 @@
 
 ### Reste à faire (bloquant avant test)
 - [x] Setup utilisateur : projet Firebase (Auth + Firestore + règles publiées) + config dans js/firebase.js — fait 2026-06-12
-- [x] Dépôt GitHub + push + GitHub Pages + domaine autorisé — fait 2026-06-12 → **https://mickaelquintin13-lab.github.io/biiingo/**
+- [x] Dépôt GitHub + push + GitHub Pages + domaine autorisé — fait 2026-06-12 (ancienne adresse ; depuis 2026-06-25 → hnt-lab.github.io/biiingo)
 - [x] deploy.bat créé (envoi auto)
 - [ ] Sons : proposition Pixabay transmise à l'utilisateur (il choisit/télécharge, ou fournit les siens) — fichiers mp3 toujours absents
 - [ ] **TEST UTILISATEUR EN COURS** → feuille : _audit/FEUILLE_DE_TEST_v0.1.0.md
