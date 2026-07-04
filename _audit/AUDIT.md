@@ -254,6 +254,14 @@
 - Théorisation idée 1 palier A rédigée (doc 14) — questions en attente. Feuille de test v1.4 consolidée publiée.
 - `node --check` OK. Version + __B = 1.4.1.
 
+## 2026-07-04 — v1.5.0 : lot retours (soft-lock, vérif interactive, curseur TV, Caster)
+- **SOFT-LOCK CORRIGÉ (bouton retour Android)** : entrée d'historique armée à l'ouverture de chaque vue (salle/MC/joueur) + gestionnaire popstate → le retour ferme d'abord un éventuel modal, sinon propose de quitter proprement (retour à l'accueil) au lieu de fermer l'app. `armeRetour()` (core.js).
+- **Bug champ « Nom du joueur » (la box se fermait au clic)** : cause = le clavier mobile déclenche un resize → l'écouteur v1.3.1 reconstruisait l'écran → perte de focus. Fix : reconstruction UNIQUEMENT au franchissement réel du seuil 900px (matchMedia change).
+- **Vérif d'un carton dématérialisé = INTERACTIVE** : cases neutres à pointer comme du papier — bon → vert (+ son valid en salle via coches), mauvais → rouge qui tremble (+ son raté) et **CTA faux bingo proposé immédiatement** ; victoire proposée quand les lignes requises sont entièrement pointées justes ; logique lose inversée ; re-tap = correction. verifTapDemat().
+- **✕/⛶ de l'écran de salle** : invisibles quand le curseur est immobile (2,5 s), réapparaissent au mouvement souris OU au toucher ; curseur masqué au repos (TV/projecteur propres).
+- **Caster** : bouton TOUJOURS affiché (demande utilisateur — la détection le cachait à tort car l'écran ne se rafraîchit pas) ; échec → modal explicatif honnête (Chromecast réel requis, miroir non couvert) → méthode universelle. **Option robuste notée : Google Cast SDK (receiver enregistré, ~5 $ une fois) — à décider si le besoin Chromecast pur se confirme.**
+- `node --check` OK. Version + __B = 1.5.0.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.
