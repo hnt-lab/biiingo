@@ -247,6 +247,13 @@
 - `node --check` OK. Version + __B = 1.4.0.
 - À TESTER terrain : Chromecast réel (bouton Caster), navigateur de Smart TV (perfs vieux navigateurs TV ?), reprise F5 TV, son sur TV (clic « activer le son » avec la télécommande TV).
 
+## 2026-07-04 — v1.4.1 : retours idée 2 (usage TV réel)
+- **Retour clé : sur une TV on ne scanne pas un QR et on ne tape pas une URL longue.** Nouveau chemin « façon Jackbox » : la TV ouvre le site court (`hnt-lab.github.io` → redirection) → bouton **« 📺 Afficher une soirée sur cet écran »** sur l'écran de connexion → **code 4 lettres** à la télécommande → tableau. (displayCodeModal/displayLance ; la session display mémorisée AVANT la connexion anonyme évite la course avec le routage.)
+- **Modal « Afficher sur une TV / un écran » réécrit TV-d'abord** : les 3 étapes télécommande en tête, QR + lien relégués à « tablette/PC ».
+- **Caster : le bouton n'apparaît QUE si un appareil de cast est réellement joignable** (getAvailability + onchange) — il passait pour cassé quand le repli s'ouvrait. Échec/annulation → toast explicatif avant le repli. Note honnête : « Caster » exige un vrai récepteur Google Cast ; les TV en simple miroir ne comptent pas.
+- Théorisation idée 1 palier A rédigée (doc 14) — questions en attente. Feuille de test v1.4 consolidée publiée.
+- `node --check` OK. Version + __B = 1.4.1.
+
 ### Points connus / dette assumée
 - Règles Firestore v1 permissives entre comptes connectés (outil privé de troupe) — à durcir si ouverture aux joueurs.
 - Préset avec BEAUCOUP de photos d'artistes : risque de dépasser la limite d'1 Mo par document → message d'erreur prévu, à surveiller.

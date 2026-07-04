@@ -42,7 +42,7 @@ function renderMC(s, prev) {
   else if (S.mcTab === 'edition') {
     if (!editionRendered) { c.innerHTML = enveloppe(mcEditionHtml(s)); editionRendered = true; mcSplitCols(c); }
   }
-  else if (S.mcTab === 'soiree') { c.innerHTML = enveloppe(mcSoireeHtml(s)); mcSplitCols(c); }
+  else if (S.mcTab === 'soiree') { c.innerHTML = enveloppe(mcSoireeHtml(s)); mcSplitCols(c); mcMajCastDispo(); }
 }
 
 // Sur grand écran : répartit les panneaux en 2 colonnes ÉQUILIBRÉES (la moins remplie reçoit le suivant)
@@ -235,10 +235,10 @@ function mcSoireeHtml(s) {
     <button class="btn block ${s.qrPopup ? 'primary' : ''}" onclick="soireeUpdate({qrPopup:${s.qrPopup ? 'false' : 'true'}})">
       ${s.qrPopup ? '📱 Masquer le QR en salle' : '📱 Afficher le QR en salle (rejoindre)'}</button>` : ''}
     <div class="mc-actions-row" style="margin-top:10px">
-      ${'PresentationRequest' in window ? `<button class="btn" onclick="mcCasterTV()">📺 Caster sur la TV</button>` : ''}
-      <button class="btn" onclick="mcEcranModal()">🔗 Lien pour un écran</button>
+      <button class="btn" id="btnCaster" style="display:none" onclick="mcCasterTV()">📺 Caster sur la TV</button>
+      <button class="btn" onclick="mcEcranModal()">📺 Afficher sur une TV / un écran</button>
     </div>
-    <p class="muted small">Pas besoin de PC : une Smart TV ou un Chromecast peut afficher le tableau tout seul.</p>
+    <p class="muted small">Pas besoin de PC : n'importe quel écran avec un navigateur peut afficher le tableau.</p>
   </div>
   <div class="soiree-bloc">
     <h3 class="mc-h3">🔊 Son de la salle</h3>
@@ -293,8 +293,21 @@ function mcDisplayUrl() {
   return location.origin + location.pathname + '?display=' + encodeURIComponent(S.soiree.code);
 }
 
-// Brique 2 — bouton Caster (Chrome Android + Chromecast). Repli : le modal lien/QR.
+// Brique 2 — bouton Caster : affiché SEULEMENT si un appareil de cast est réellement joignable
+// (sinon le bouton semblait « ne pas marcher » — retour utilisateur)
 let mcPresentation = null;
+function mcMajCastDispo() {
+  if (!('PresentationRequest' in window) || !S.soiree) return;
+  try {
+    const req = new PresentationRequest([mcDisplayUrl()]);
+    req.getAvailability().then(av => {
+      const maj = () => { const b = $('#btnCaster'); if (b) b.style.display = av.value ? '' : 'none'; };
+      maj();
+      av.onchange = maj;
+    }).catch(() => {});
+  } catch (e) {}
+}
+
 function mcCasterTV() {
   try {
     const req = new PresentationRequest([mcDisplayUrl()]);
@@ -302,7 +315,7 @@ function mcCasterTV() {
       mcPresentation = conn;
       toast('Tableau envoyé sur la TV 📺');
     }).catch(() => {
-      // refus/annulation/pas d'écran trouvé → on propose le lien et le QR
+      toast('Cast annulé ou aucun appareil trouvé — voici la méthode universelle 👇');
       mcEcranModal();
     });
   } catch (e) {
@@ -310,22 +323,29 @@ function mcCasterTV() {
   }
 }
 
-// Brique 1 — lien + QR d'affichage public (Smart TV avec navigateur, tablette, PC…)
+// Brique 1 — la méthode UNIVERSELLE, pensée télécommande de TV : site court + code 4 lettres
 function mcEcranModal() {
   const url = mcDisplayUrl();
+  const code = S.soiree.code;
   modal(`
-    <h3>🔗 Afficher la soirée sur un écran</h3>
-    <p class="muted small">Ouvre ce lien sur N'IMPORTE QUEL écran connecté (navigateur de Smart TV,
-    tablette, PC…) : le tableau s'affiche tout seul, sans compte.</p>
+    <h3>📺 Afficher la soirée sur une TV / un écran</h3>
+    <div class="tv-etapes">
+      <p><b>Sur une Smart TV</b> (avec sa télécommande) :</p>
+      <p class="tv-etape">1️⃣ Ouvre le navigateur de la TV et va sur<br><span class="tv-url">hnt-lab.github.io</span></p>
+      <p class="tv-etape">2️⃣ Choisis « 📺 Afficher une soirée sur cet écran »</p>
+      <p class="tv-etape">3️⃣ Tape le code : <span class="code-mini">${esc(code)}</span></p>
+    </div>
+    <hr class="ed-sep">
+    <p class="muted small">Tablette ou PC : scanne ce QR ou colle le lien direct — le tableau s'ouvre sans compte.</p>
     <div class="ecran-qr"><div id="ecranQrBox"></div></div>
-    <label class="field"><span>Le lien (à taper ou envoyer sur la TV)</span>
+    <label class="field"><span>Lien direct</span>
       <input id="ecranUrl" type="text" readonly value="${escAttr(url)}" onclick="this.select()"></label>
     <div class="modal-btns">
       <button class="btn" onclick="mcCopieUrl()">📋 Copier le lien</button>
       <button class="btn primary" onclick="closeModal()">Fermer</button>
     </div>`);
   try {
-    new QRCode($('#ecranQrBox'), { text: url, width: 170, height: 170, colorDark: '#1a1426', colorLight: '#ffffff' });
+    new QRCode($('#ecranQrBox'), { text: url, width: 150, height: 150, colorDark: '#1a1426', colorLight: '#ffffff' });
   } catch (e) {}
 }
 

@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Biiingo">
   <!-- Anti-cache : version des fichiers bumpée à chaque déploiement (BUILD) -->
-  <script>window.__B='1.4.0';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
+  <script>window.__B='1.4.1';document.write('<link rel="stylesheet" href="css/main.css?v='+__B+'">');</script>
   <noscript><link rel="stylesheet" href="css/main.css"></noscript>
 </head>
 <body>
@@ -46,6 +46,9 @@
         <a id="authToSignup" href="#" onclick="authToggleMode(true);return false">Pas encore de compte ? En créer un</a>
         <a id="authToLogin" href="#" style="display:none" onclick="authToggleMode(false);return false">J'ai déjà un compte</a>
       </p>
+      <hr class="ed-sep">
+      <button class="btn block" onclick="displayCodeModal()">📺 Afficher une soirée sur cet écran</button>
+      <p class="muted small center" style="margin-top:6px">Pour les TV et écrans de salle — juste un code, pas de compte.</p>
       <p class="center muted small"><a href="confidentialite.html" target="_blank">Politique de confidentialité</a></p>
     </div>
   </div>
