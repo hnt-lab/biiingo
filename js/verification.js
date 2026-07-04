@@ -120,7 +120,9 @@ function mcVerifHtml(s) {
 // Nombre de cases à pointer (quine 5, double 10, carton 15, lose = carton complet 15)
 const VERIF_BESOIN = { quine: 5, double: 10, carton: 15, lose: 15 };
 
-// ---------- Vérification d'un JOUEUR CONNECTÉ : son carton en clair ----------
+// ---------- Vérification d'un JOUEUR CONNECTÉ : son carton, à POINTER comme du papier ----------
+// Le MC appuie sur les numéros : bon → vert (+ son de validation en salle), mauvais → rouge qui
+// tremble (+ son raté) et le faux bingo est proposé immédiatement. Suspense préservé.
 function mcVerifCartonHtml(s, v) {
   const lose = s.objectif === 'lose';
   const joueur = (S.joueurs || []).find(j => j.uid === v.joueurUid);
@@ -129,52 +131,65 @@ function mcVerifCartonHtml(s, v) {
       <button class="btn block" onclick="verifCancel()">✖ Annuler la vérification</button></div>`;
   }
   const tires = s.tires || [];
+  const coches = v.coches || [];
   const cartons = cartonsDepuisDb(joueur.cartons);
-  let lignesOk = 0, numsSortis = 0, totalNums = 0;
+  let lignesOk = 0, mauvais = 0, totalNums = 0, bonsCoches = 0;
   const cartonsHtml = cartons.map((carton, idx) => {
     let cells = '';
     for (let r = 0; r < 3; r++) {
       const nums = carton[r].filter(n => n > 0);
-      if (nums.every(n => tires.includes(n))) lignesOk++;
+      // ligne validée = tous ses numéros POINTÉS et réellement bons
+      if (nums.every(n => coches.includes(n) && (lose ? !tires.includes(n) : tires.includes(n)))) lignesOk++;
       for (let col = 0; col < 9; col++) {
         const n = carton[r][col];
         if (!n) { cells += '<div class="vcase vide"></div>'; continue; }
         totalNums++;
-        const sorti = tires.includes(n);
-        if (sorti) numsSortis++;
-        // normal : sorti = vert (bon) ; lose : sorti = rouge (fatal)
-        const bon = lose ? !sorti : sorti;
-        cells += `<div class="vcase ${bon ? 'ok' : 'ko'}">${n}</div>`;
+        let cls = '';
+        if (coches.includes(n)) {
+          const bon = lose ? !tires.includes(n) : tires.includes(n);
+          cls = bon ? 'ok' : 'ko';
+          if (bon) bonsCoches++; else mauvais++;
+        }
+        cells += `<button class="vcase tap ${cls}" onclick="verifTapDemat(${n})">${n}</button>`;
       }
     }
     return `<p class="muted small">Carton ${idx + 1} :</p><div class="verif-carton">${cells}</div>`;
   }).join('');
 
-  // Verdict suggéré automatiquement
+  // Verdict proposé selon le pointage
   let cta = '';
-  if (lose) {
-    cta = numsSortis === 0
-      ? `<div class="verif-cta float win"><span>✨ Aucun numéro sorti — survivant·e légitime !</span>
-           <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Survivant·e confirmé·e</button></div>`
-      : `<div class="verif-cta float lose"><span>💀 ${numsSortis} numéro(s) sorti(s) — il·elle aurait dû perdre !</span>
-           <button class="btn ko big" onclick="verifVerdictFaux()">Éliminé·e</button></div>`;
-  } else {
+  if (mauvais > 0) {
+    cta = `<div class="verif-cta float lose"><span>${lose ? '💀' : '💋'} ${mauvais} numéro(s) ${lose ? 'SORTI(S) — fatal !' : 'pas sorti(s)…'}</span>
+      <button class="btn ko big" onclick="verifVerdictFaux()">${lose ? 'Éliminé·e' : 'Faux bingo'}</button></div>`;
+  } else if (lose && bonsCoches >= totalNums) {
+    cta = `<div class="verif-cta float win"><span>✨ Carton entièrement pointé, aucun numéro sorti !</span>
+      <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Survivant·e confirmé·e</button></div>`;
+  } else if (!lose) {
     const besoinLignes = s.objectif === 'quine' ? 1 : s.objectif === 'double' ? 2 : 3;
-    cta = lignesOk >= besoinLignes
-      ? `<div class="verif-cta float win"><span>✨ ${lignesOk} ligne(s) complète(s) — c'est BON !</span>
-           <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`
-      : `<div class="verif-cta float lose"><span>💋 ${lignesOk} ligne(s) complète(s) sur ${besoinLignes} requise(s)…</span>
-           <button class="btn ko big" onclick="verifVerdictFaux()">Faux bingo</button></div>`;
+    if (lignesOk >= besoinLignes) {
+      cta = `<div class="verif-cta float win"><span>✨ ${lignesOk} ligne(s) validée(s) — c'est BON !</span>
+        <button class="btn ok big" onclick="verifConfirmGagne()">🏆 Valider la victoire</button></div>`;
+    }
   }
   return `
   <div class="mc-alerte">📱 Carton de <b>${esc(joueur.nom || '?')}</b>
-    <span class="verif-bilan"><span class="ok-txt">vert</span> = ${lose ? 'pas sorti (sauvé)' : 'sorti'} · <span class="ko-txt">rouge</span> = ${lose ? 'SORTI (fatal)' : 'pas sorti'}</span></div>
+    <span class="verif-bilan">Appuie sur les numéros annoncés — comme un carton papier</span></div>
   ${cartonsHtml}
   <div class="mc-actions-row verdict-row">
     <button class="btn ghost" onclick="verifCancel()">✖ Annuler</button>
+    <button class="btn ko" onclick="verifVerdictFaux()">${lose ? '💀 Éliminé' : '💋 Faux bingo'}</button>
+    <button class="btn ok" onclick="verifConfirmGagne()">${lose ? '🏆 Survivant' : '✨ GAGNÉ'}</button>
   </div>
   <div class="verif-float-spacer"></div>
   ${cta}`;
+}
+
+// Pointage d'un numéro du carton dématérialisé (re-tap = correction, comme partout)
+function verifTapDemat(n) {
+  const v = S.soiree.verification || {};
+  const coches = v.coches || [];
+  if (coches.includes(n)) soireeUpdate({ 'verification.coches': FV.arrayRemove(n) });
+  else soireeUpdate({ 'verification.coches': FV.arrayUnion(n) });
 }
 
 function verifChoisitJoueur(uid) {

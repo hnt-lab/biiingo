@@ -42,7 +42,7 @@ function renderMC(s, prev) {
   else if (S.mcTab === 'edition') {
     if (!editionRendered) { c.innerHTML = enveloppe(mcEditionHtml(s)); editionRendered = true; mcSplitCols(c); }
   }
-  else if (S.mcTab === 'soiree') { c.innerHTML = enveloppe(mcSoireeHtml(s)); mcSplitCols(c); mcMajCastDispo(); }
+  else if (S.mcTab === 'soiree') { c.innerHTML = enveloppe(mcSoireeHtml(s)); mcSplitCols(c); }
 }
 
 // Sur grand écran : répartit les panneaux en 2 colonnes ÉQUILIBRÉES (la moins remplie reçoit le suivant)
@@ -64,14 +64,14 @@ function mcSplitCols(c) {
   inner.appendChild(wrap);
 }
 
-// Traverser le seuil PC/mobile → on reconstruit la mise en page de l'onglet
-let mcResizeTimer = null;
-window.addEventListener('resize', () => {
-  clearTimeout(mcResizeTimer);
-  mcResizeTimer = setTimeout(() => {
+// Reconstruire la mise en page UNIQUEMENT au vrai franchissement du seuil PC/mobile.
+// (Surtout PAS sur chaque « resize » : sur mobile, ouvrir le clavier redimensionne la fenêtre
+// et ça reconstruisait l'écran → les champs de saisie perdaient le focus instantanément.)
+try {
+  matchMedia('(min-width: 900px)').addEventListener('change', () => {
     if (S.mode === 'mc' && S.soiree) { editionRendered = false; renderMC(S.soiree, null); }
-  }, 350);
-});
+  });
+} catch (e) {}
 
 // ---------- Onglet TIRAGE ----------
 function mcTirageHtml(s) {
@@ -235,7 +235,7 @@ function mcSoireeHtml(s) {
     <button class="btn block ${s.qrPopup ? 'primary' : ''}" onclick="soireeUpdate({qrPopup:${s.qrPopup ? 'false' : 'true'}})">
       ${s.qrPopup ? '📱 Masquer le QR en salle' : '📱 Afficher le QR en salle (rejoindre)'}</button>` : ''}
     <div class="mc-actions-row" style="margin-top:10px">
-      <button class="btn" id="btnCaster" style="display:none" onclick="mcCasterTV()">📺 Caster sur la TV</button>
+      ${'PresentationRequest' in window ? `<button class="btn" onclick="mcCasterTV()">📡 Caster (Chromecast)</button>` : ''}
       <button class="btn" onclick="mcEcranModal()">📺 Afficher sur une TV / un écran</button>
     </div>
     <p class="muted small">Pas besoin de PC : n'importe quel écran avec un navigateur peut afficher le tableau.</p>
@@ -293,21 +293,10 @@ function mcDisplayUrl() {
   return location.origin + location.pathname + '?display=' + encodeURIComponent(S.soiree.code);
 }
 
-// Brique 2 — bouton Caster : affiché SEULEMENT si un appareil de cast est réellement joignable
-// (sinon le bouton semblait « ne pas marcher » — retour utilisateur)
+// Brique 2 — bouton Caster (toujours visible — demande utilisateur). Honnêteté technique :
+// le web ne peut viser que les VRAIS récepteurs Google Cast ; beaucoup de TV « castables »
+// (miroir Miracast/AirPlay) ne le sont pas → dans ce cas, message clair + méthode universelle.
 let mcPresentation = null;
-function mcMajCastDispo() {
-  if (!('PresentationRequest' in window) || !S.soiree) return;
-  try {
-    const req = new PresentationRequest([mcDisplayUrl()]);
-    req.getAvailability().then(av => {
-      const maj = () => { const b = $('#btnCaster'); if (b) b.style.display = av.value ? '' : 'none'; };
-      maj();
-      av.onchange = maj;
-    }).catch(() => {});
-  } catch (e) {}
-}
-
 function mcCasterTV() {
   try {
     const req = new PresentationRequest([mcDisplayUrl()]);
@@ -315,8 +304,15 @@ function mcCasterTV() {
       mcPresentation = conn;
       toast('Tableau envoyé sur la TV 📺');
     }).catch(() => {
-      toast('Cast annulé ou aucun appareil trouvé — voici la méthode universelle 👇');
-      mcEcranModal();
+      modal(`
+        <h3>📡 Le cast n'a pas abouti</h3>
+        <p class="modal-msg muted small">Soit la fenêtre a été annulée, soit aucun <b>Chromecast</b> n'est
+        joignable sur ce réseau. ⚠️ Les TV en simple « miroir d'écran » n'apparaissent pas ici — pour
+        elles, utilise la méthode universelle (navigateur de la TV + code), qui marche partout.</p>
+        <div class="modal-btns">
+          <button class="btn ghost" onclick="closeModal()">Fermer</button>
+          <button class="btn primary" onclick="closeModal();mcEcranModal()">📺 Méthode universelle</button>
+        </div>`);
     });
   } catch (e) {
     mcEcranModal();

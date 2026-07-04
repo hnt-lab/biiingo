@@ -78,6 +78,7 @@ async function joueurEntrer(nom, invite) {
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
 
   showScreen('joueurScreen');
+  armeRetour(); // le bouton retour Android propose de quitter au lieu de fermer l'app
   if (J.unsub) J.unsub();
   J.unsub = db.collection('soirees').doc(J.soireeId).onSnapshot(d => {
     if (!d.exists) { joueurQuitter(); toast('La soirée a été supprimée.'); return; }

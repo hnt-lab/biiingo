@@ -60,6 +60,21 @@ function showScreen(id) {
   $('#' + id).classList.add('active');
 }
 
+// ---------- Bouton RETOUR Android : ne jamais éjecter l'utilisateur de l'app ----------
+// On arme une entrée d'historique en entrant dans une vue ; le retour la consomme,
+// on la ré-arme et on propose de quitter PROPREMENT (retour à l'accueil, pas fermeture).
+function armeRetour() {
+  try { history.pushState({ biiingo: 1 }, ''); } catch (e) {}
+}
+window.addEventListener('popstate', () => {
+  // Un modal ouvert ? le retour le ferme, c'est tout.
+  const mb = document.getElementById('modalBack');
+  if (mb && mb.classList.contains('show')) { closeModal(); armeRetour(); return; }
+  if (S.mode === 'salle') { armeRetour(); salleQuit(); return; }
+  if (S.mode === 'mc') { armeRetour(); confirmAction('Quitter la télécommande ? (la soirée continue)', 'Quitter', 'quitSoiree()'); return; }
+  if (window.J && J.soireeId) { armeRetour(); confirmAction('Quitter la partie ?', 'Quitter', 'joueurQuitter()'); return; }
+});
+
 // Saisie du code directement sur l'écran (le chemin simple pour les TV : site court + 4 lettres)
 function displayCodeModal() {
   modal(`
@@ -286,6 +301,7 @@ function openSoiree(id, mode, gesture) {
   // On retient la session : après un F5, on revient directement ici (demande utilisateur)
   // (en affichage public, la session est déjà mémorisée sous biiingo_display)
   if (!S.displayMode) try { localStorage.setItem('biiingo_session', JSON.stringify({ id, mode })); } catch (e) {}
+  armeRetour(); // le bouton retour Android proposera de quitter au lieu de fermer l'app
   if (mode === 'salle') {
     showScreen('salleScreen');
     salleOpenInit(gesture !== false); // ouvert via un clic → plein écran + son immédiats

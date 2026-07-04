@@ -53,6 +53,20 @@ function salleQuit() {
   confirmAction('Quitter l\'affichage de la salle ?', 'Quitter', 'quitSoiree()');
 }
 
+// Les boutons ✕/⛶ n'apparaissent QUE quand le curseur bouge (ou au toucher), puis se cachent.
+(function () {
+  let idleTimer = null;
+  function curseurActif() {
+    const scr = document.getElementById('salleScreen');
+    if (!scr || !scr.classList.contains('active')) return;
+    scr.classList.add('curseur-actif');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => scr.classList.remove('curseur-actif'), 2500);
+  }
+  window.addEventListener('mousemove', curseurActif);
+  window.addEventListener('touchstart', curseurActif, { passive: true });
+})();
+
 function renderSalle(s, prev) {
   // ----- Réglages son pilotés depuis la télécommande -----
   const son = s.son || {};
