@@ -8,7 +8,14 @@ const S = {
   soiree: null,      // données temps réel de la soirée ouverte
   prev: null,        // état précédent (pour détecter les nouveautés côté salle)
   unsub: null,       // arrêt de l'écoute temps réel
+  unsubMedias: null,
+  unsubJoueurs: null,
   registre: {},      // registre des habitués (autocomplétion)
+  medias: {},
+  sonsCustom: {},
+  joueurs: [],
+  nbJoueurs: 0,
+  displayMode: false,
   mcTab: 'tirage'    // onglet actif de la télécommande
 };
 
@@ -287,6 +294,11 @@ async function joinByCode() {
     snap.forEach(d => { if (!found || (d.data().statut === 'active')) found = d; });
     if (!found) { toast('Aucune soirée avec ce code.'); return; }
     await found.ref.update({ mcUids: FV.arrayUnion(S.user.uid) });
+    const ownerUid = found.data().ownerUid;
+    await db.collection('registres').doc(ownerUid).set({
+      memberUids: FV.arrayUnion(S.user.uid),
+      accessSoireeId: found.id
+    }, { merge: true });
     closeModal();
     openSoiree(found.id, 'mc');
   } catch (e) {
@@ -313,7 +325,11 @@ function openSoiree(id, mode, gesture) {
     const premier = !S.soiree;
     S.prev = S.soiree;
     S.soiree = doc.data();
-    if (premier) { loadRegistre(); loadCustomSounds(); } // données liées au créateur de la soirée
+    if (premier) {
+      if (S.mode === 'mc') ensureRegistreAccess().finally(loadRegistre);
+      else loadRegistre();
+      loadCustomSounds();
+    }
     if (S.mode === 'salle') renderSalle(S.soiree, S.prev);
     else renderMC(S.soiree, S.prev);
   }, () => { /* erreur réseau passagère : Firestore réessaie tout seul */ });
@@ -406,6 +422,18 @@ function soireeUpdate(patch) {
 }
 
 // ---------- Registre des habitués (gagnants d'une soirée à l'autre) ----------
+async function ensureRegistreAccess() {
+  if (!S.user || !S.soiree || S.mode !== 'mc') return;
+  try {
+    await db.collection('registres').doc(S.soiree.ownerUid).set({
+      memberUids: FV.arrayUnion(S.user.uid),
+      accessSoireeId: S.soireeId
+    }, { merge: true });
+  } catch (e) {
+    // Un membre déjà enregistré peut ne plus avoir besoin de mettre à jour l'identifiant d'accès.
+  }
+}
+
 async function loadRegistre() {
   S.registre = {};
   try {
@@ -427,6 +455,8 @@ async function saveWinnerToRegistre(nom) {
   const type = ['quine', 'double', 'carton', 'lose'].includes(S.soiree.objectif) ? S.soiree.objectif : 'quine';
   try {
     await db.collection('registres').doc(owner).set({
+      memberUids: FV.arrayUnion(S.user.uid),
+      accessSoireeId: S.soireeId,
       noms: { [key]: { nom, victoires: FV.increment(1), [type]: FV.increment(1) } }
     }, { merge: true });
     if (!S.registre[key]) S.registre[key] = { nom, victoires: 0 };

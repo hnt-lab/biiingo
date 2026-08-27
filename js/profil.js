@@ -128,22 +128,8 @@ async function profDoDelete() {
   }
   $('#delError').textContent = 'Suppression en cours…';
   try {
-    // 1. Ses soirées (+ leurs images)
-    const soirees = await db.collection('soirees').where('ownerUid', '==', uid).get();
-    for (const d of soirees.docs) {
-      const medias = await db.collection('medias').where('soireeId', '==', d.id).get();
-      await Promise.all(medias.docs.map(m => m.ref.delete().catch(() => {})));
-      await d.ref.delete().catch(() => {});
-    }
-    // 2. Ses sons personnalisés et son registre d'habitués
-    const sons = await db.collection('sons').where('uid', '==', uid).get();
-    await Promise.all(sons.docs.map(x => x.ref.delete().catch(() => {})));
-    await db.collection('registres').doc(uid).delete().catch(() => {});
-    // 3. Ses présets puis son profil
-    const presets = await db.collection('users').doc(uid).collection('presets').get();
-    await Promise.all(presets.docs.map(p => p.ref.delete().catch(() => {})));
-    await db.collection('users').doc(uid).delete().catch(() => {});
-    // 4. Le compte lui-même (déconnecte automatiquement)
+    await deleteUserData(uid);
+    // Le compte Auth est supprimé en dernier, après toutes les données Firestore.
     await S.user.delete();
     closeModal();
     toast('Compte supprimé. Au revoir 💜');

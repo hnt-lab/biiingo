@@ -7,3 +7,10 @@ CLAUDE.md
 *.aab
 signing-key-info.txt
 *Google Play package*
+
+# Dépendances et sorties des outils locaux
+node_modules/
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
