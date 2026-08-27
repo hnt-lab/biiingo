@@ -9,14 +9,15 @@
 3. Nom du projet : **biiingo** → Continuer.
 4. Google Analytics : **désactive** l'interrupteur (on n'en a pas besoin) → Créer le projet → Continuer.
 
-## Étape 2 — Activer les comptes (connexion des MC)
+## Étape 2 — Activer les comptes et les accès anonymes
 
 1. Dans le menu de gauche : **Création (Build) → Authentication**.
 2. Clique **« Commencer »**.
 3. Dans l'onglet « Sign-in method », clique sur **« Adresse e-mail/Mot de passe »**.
 4. Active **le premier interrupteur** (Adresse e-mail/Mot de passe) — laisse le second (lien e-mail) désactivé → **Enregistrer**.
+5. Reviens à la liste des fournisseurs, ouvre **« Anonyme »**, active-le puis enregistre. Cet accès est utilisé par les joueurs invités et les écrans publics.
 
-## Étape 3 — Activer la base de données temps réel
+## Étape 3 — Activer la base Firestore
 
 1. Menu de gauche : **Création (Build) → Firestore Database**.
 2. Clique **« Créer une base de données »**.
@@ -32,18 +33,20 @@
 3. Surnom de l'app : **Biiingo** → ne coche PAS « Firebase Hosting » → **Enregistrer l'application**.
 4. Une zone de code s'affiche avec `const firebaseConfig = { ... }`.
    **Copie tout ce qui est entre les accolades { }** (les lignes apiKey, authDomain, projectId…)
-   et **envoie-le à Claude** : il l'installera au bon endroit (`js/firebase.js`).
+   et remplace l'objet `firebaseConfig` dans `js/firebase.js` par cette configuration.
 
 ## Étape 5 — Créer le dépôt GitHub (l'hébergement du site)
 
 1. Va sur **https://github.com** et connecte-toi.
 2. En haut à droite : **+ → New repository**.
 3. Nom : **biiingo** · coche **Public** · ne coche RIEN d'autre → **Create repository**.
-4. **Préviens Claude** : il enverra le code dans ce dépôt avec git (tu n'as rien d'autre à faire).
+4. Depuis le dossier du projet, associe le dépôt puis publie `main` :
+   `git remote add origin https://github.com/TONPSEUDO/biiingo.git`,
+   `git branch -M main`, puis `git push -u origin main`.
 
 ## Étape 6 — Activer GitHub Pages (mettre le site en ligne)
 
-*(après que Claude a envoyé le code)*
+*(après la publication du code sur `main`)*
 1. Dans le dépôt GitHub : onglet **Settings → Pages** (menu de gauche).
 2. « Source » : **Deploy from a branch** · Branche : **main** · dossier : **/ (root)** → **Save**.
 3. Après 1-2 minutes, l'adresse du site apparaît en haut : `https://TONPSEUDO.github.io/biiingo/`.

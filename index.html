@@ -141,7 +141,7 @@
   <!-- Application (scripts séquentiels, versionnés anti-cache) -->
   <script>
     (function () {
-      var files = ['version', 'config', 'state', 'joueur-state', 'ui', 'image-utils', 'sons', 'firebase', 'data', 'public-display', 'feedback', 'auth', 'core', 'anims', 'salle-qr', 'salle', 'verification', 'mc', 'mc-display', 'editeur', 'tuto', 'profil', 'cartons', 'jetons', 'joueur'];
+      var files = ['version', 'config', 'state', 'joueur-state', 'ui', 'image-utils', 'sons', 'firebase', 'data', 'public-display', 'feedback', 'auth', 'core', 'anims', 'salle-qr', 'salle', 'verification', 'mc', 'mc-display', 'editeur-sons', 'editeur-contenu', 'editeur', 'tuto', 'profil', 'cartons', 'jetons', 'joueur'];
       for (var i = 0; i < files.length; i++) {
         document.write('<script src="js/' + files[i] + '.js?v=' + window.__B + '"><\/script>');
       }
