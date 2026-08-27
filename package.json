@@ -1,6 +1,6 @@
 {
   "name": "biiingo",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "private": true,
   "description": "Outil d'animation de soirées bingo",
   "scripts": {

@@ -51,7 +51,11 @@ const Jetons = {
 
   _dansReserve(body) {
     const r = this.reserve;
-    return r && body.position.x >= r.x && body.position.y >= r.y;
+    return !!r
+      && body.position.x >= r.x
+      && body.position.x <= r.x + r.w
+      && body.position.y >= r.y
+      && body.position.y <= r.y + r.h;
   },
 
   // Vérification en cours : tout gelé (aucune pose, aucune chute)
@@ -73,6 +77,12 @@ const Jetons = {
     this.bodies = [];
     this.marked = new Set();
     this.engine = null;
+    this.world = null;
+    this.aire = null;
+    this.cellRects = {};
+    this.reserve = null;
+    this._drag = null;
+    this._lastAccel = null;
   },
 
   // Rayon de jeton adapté à la taille des cases
@@ -102,9 +112,29 @@ const Jetons = {
     }
     const restant = Math.max(0, nb - (placedNums || []).length - fallen);
     for (let i = 0; i < restant; i++) {
-      this._creer(w - 30 - Math.random() * 60, h - 30 - Math.random() * 80, rayon, 0);
+      const position = this._positionReserve(i, restant, rayon, w, h);
+      this._creer(position.x, position.y, rayon, 0);
     }
     this._notifie();
+  },
+
+  _positionReserve(index, count, rayon, width, height) {
+    const r = this.reserve;
+    if (!r) return { x: width - rayon - 12, y: height - rayon - 12 };
+    const padding = Math.max(6, rayon * .25);
+    const minX = r.x + rayon + padding;
+    const maxX = Math.max(minX, r.x + r.w - rayon - padding);
+    const minY = r.y + rayon + padding;
+    const maxY = Math.max(minY, r.y + r.h - rayon - padding);
+    const diameterGap = rayon * 2 + 4;
+    const columns = Math.max(1, Math.floor((maxX - minX) / diameterGap) + 1);
+    const rows = Math.max(1, Math.ceil(count / columns));
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    return {
+      x: columns === 1 ? (minX + maxX) / 2 : minX + (maxX - minX) * column / (columns - 1),
+      y: rows === 1 ? (minY + maxY) / 2 : maxY - (maxY - minY) * row / (rows - 1)
+    };
   },
 
   _creer(x, y, rayon, num, fallen) {

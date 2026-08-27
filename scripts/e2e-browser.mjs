@@ -50,8 +50,8 @@ const targetUrl = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ executablePath, headless: true });
 const runtimeErrors = [];
 
-async function createAppPage(pathname) {
-  const context = await browser.newContext();
+async function createAppPage(pathname, contextOptions = {}) {
+  const context = await browser.newContext(contextOptions);
   await context.addInitScript(() => {
     window.__BIIINGO_EMULATORS = true;
     localStorage.setItem('biiingo_tuto_vu_v2', '1');
@@ -65,6 +65,52 @@ async function createAppPage(pathname) {
   });
   await page.goto(targetUrl + pathname, { waitUntil: 'load', timeout: 30_000 });
   return { context, page };
+}
+
+async function playerTokenLayout(page) {
+  return page.evaluate(() => ({
+    total: Jetons.bodies.length,
+    marked: Jetons.marked.size,
+    reserveReady: Jetons.bodies
+      .filter(token => !token.num && !token.fallen)
+      .every(token => Jetons._dansReserve(token.body)),
+    placedAligned: Jetons.bodies
+      .filter(token => token.num)
+      .every(token => {
+        const cell = Jetons.cellRects[token.num];
+        return cell
+          && Math.abs(token.body.position.x - (cell.x + cell.w / 2)) < 1
+          && Math.abs(token.body.position.y - (cell.y + cell.h / 2)) < 1;
+      })
+  }));
+}
+
+async function assertPlayerTokenLayout(page, label) {
+  await page.waitForFunction(() => Jetons.engine && Jetons.bodies.length === 15, null, { timeout: 10_000 });
+  const layout = await playerTokenLayout(page);
+  if (layout.total !== 15 || !layout.reserveReady || !layout.placedAligned) {
+    throw new Error(`${label} : géométrie joueur invalide ${JSON.stringify(layout)}`);
+  }
+}
+
+async function placeFirstReserveToken(page) {
+  const points = await page.evaluate(() => {
+    const token = Jetons.bodies.find(item => !item.num && !item.fallen && Jetons._dansReserve(item.body));
+    const entry = Object.entries(Jetons.cellRects).find(([number]) => !Jetons.marked.has(Number(number)));
+    if (!token || !entry) return null;
+    const area = Jetons.aire.getBoundingClientRect();
+    const cell = entry[1];
+    return {
+      from: { x: area.left + token.body.position.x, y: area.top + token.body.position.y },
+      to: { x: area.left + cell.x + cell.w / 2, y: area.top + cell.y + cell.h / 2 }
+    };
+  });
+  if (!points) throw new Error('Aucun jeton disponible pour le test de pose.');
+  await page.mouse.move(points.from.x, points.from.y);
+  await page.mouse.down();
+  await page.mouse.move(points.to.x, points.to.y, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForFunction(() => Jetons.marked.size === 1, null, { timeout: 5_000 });
 }
 
 let mcApp;
@@ -96,7 +142,7 @@ try {
   await display.waitForSelector('#salleScreen.active', { timeout: 20_000 });
   await display.waitForFunction(() => S.soiree?.titre === 'Soirée E2E');
 
-  playerApp = await createAppPage('/');
+  playerApp = await createAppPage('/', { viewport: { width: 844, height: 390 } });
   const player = playerApp.page;
   await player.waitForSelector('#authScreen.active', { timeout: 20_000 });
   await player.click('button:has-text("Rejoindre une soirée comme joueur")');
@@ -129,6 +175,26 @@ try {
   await mc.evaluate(() => mcTapNum(42));
   await display.waitForFunction(() => document.querySelector('#dernierNum')?.textContent === '42');
   await player.waitForFunction(() => document.querySelector('#joueurDernier')?.textContent === '42');
+
+  await assertPlayerTokenLayout(player, 'montage initial');
+  await placeFirstReserveToken(player);
+  await player.setViewportSize({ width: 390, height: 844 });
+  await player.waitForTimeout(450);
+  await player.setViewportSize({ width: 844, height: 390 });
+  await player.waitForTimeout(700);
+  await assertPlayerTokenLayout(player, 'rotation portrait paysage');
+  await player.setViewportSize({ width: 760, height: 360 });
+  await player.evaluate(() => document.dispatchEvent(new Event('fullscreenchange')));
+  await player.waitForTimeout(700);
+  await assertPlayerTokenLayout(player, 'sortie plein écran et redimensionnement');
+  await player.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  await player.waitForFunction(() => Jetons.marked.size === 0, null, { timeout: 5_000 });
+  await player.setViewportSize({ width: 360, height: 760 });
+  await player.waitForTimeout(450);
+  await player.setViewportSize({ width: 844, height: 390 });
+  await player.waitForTimeout(700);
+  await assertPlayerTokenLayout(player, 'retour application et reconnexion géométrique');
+  await placeFirstReserveToken(player);
 
   await mc.evaluate(() => mcSetTab('edition'));
   await mc.waitForSelector('.ed-intro');

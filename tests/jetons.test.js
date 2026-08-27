@@ -13,7 +13,7 @@ function loadJetons() {
     Number,
     Set,
     setTimeout(callback) { callback(); },
-    SECOUSSE_SEUIL: 12,
+    SECOUSSE_SEUIL: 8,
     document: {
       addEventListener(name, callback) { listeners[name] = callback; },
       visibilityState: 'visible'
@@ -55,6 +55,18 @@ test('utilise accelerationIncludingGravity en repli', () => {
   assert.equal(falls, 1);
 });
 
+test('déclenche sur une secousse modérée sans réagir aux petits mouvements', () => {
+  const { Jetons, listeners } = loadJetons();
+  let falls = 0;
+  Jetons.engine = {};
+  Jetons.dislodge = () => { falls += 1; };
+  Jetons._ecouteSecousses();
+  listeners.devicemotion({ acceleration: { x: 7.9, y: 0, z: 0 } });
+  assert.equal(falls, 0);
+  listeners.devicemotion({ acceleration: { x: 8.1, y: 0, z: 0 } });
+  assert.equal(falls, 1);
+});
+
 test('déclenche la chute au passage en portrait', () => {
   const { Jetons, media } = loadJetons();
   let falls = 0;
@@ -83,4 +95,24 @@ test('restaure les jetons tombés hors du réservoir', () => {
   assert.equal(fallen.length, 3);
   assert.equal(created.length, 15);
   assert.ok(fallen.every(token => token.x < Jetons.reserve.x && token.y > 350));
+});
+
+test('considère uniquement les positions entièrement dans le réservoir', () => {
+  const { Jetons } = loadJetons();
+  Jetons.reserve = { x: 690, y: 0, w: 110, h: 400 };
+  assert.equal(Jetons._dansReserve({ position: { x: 700, y: 200 } }), true);
+  assert.equal(Jetons._dansReserve({ position: { x: 820, y: 200 } }), false);
+  assert.equal(Jetons._dansReserve({ position: { x: 700, y: 420 } }), false);
+});
+
+test('place tous les jetons inutilisés dans les limites réelles du réservoir', () => {
+  const { Jetons } = loadJetons();
+  const created = [];
+  Jetons.aire = { clientWidth: 800, clientHeight: 400 };
+  Jetons.reserve = { x: 690, y: 0, w: 110, h: 400 };
+  Jetons._rayon = () => 20;
+  Jetons._creer = (x, y, radius, number, fallen) => created.push({ x, y, radius, number, fallen });
+  Jetons.spawn(15, [], 0);
+  assert.equal(created.length, 15);
+  assert.ok(created.every(token => Jetons._dansReserve({ position: token })));
 });
