@@ -47,6 +47,8 @@
         <a id="authToLogin" href="#" style="display:none" onclick="authToggleMode(false);return false">J'ai déjà un compte</a>
       </p>
       <hr class="ed-sep">
+      <button class="btn block primary big" onclick="joueurCodeModal()">🎟 Rejoindre une soirée comme joueur</button>
+      <p class="muted small center" style="margin-top:6px">Entre le code de la soirée et joue en invité, sans créer de compte.</p>
       <button class="btn block" onclick="displayCodeModal()">📺 Afficher une soirée sur cet écran</button>
       <p class="muted small center" style="margin-top:6px">Pour les TV et écrans de salle — juste un code, pas de compte.</p>
       <p class="center muted small"><a href="confidentialite.html" target="_blank">Politique de confidentialité</a></p>
@@ -110,7 +112,10 @@
     <main id="joueurContent"></main>
     <div id="joueurVerif" class="joueur-verif"></div>
     <div id="joueurBandeau" class="bandeau"></div>
-    <div class="tourne-tel">🔄<br>Tourne ton téléphone<br><span class="muted small">Le carton se joue en paysage !</span></div>
+    <div class="tourne-tel">
+      <span class="tourne-tel-emoji">💥</span>
+      <span><b>Les jetons tombent !</b><br><span class="muted small">Repasse en paysage pour continuer.</span></span>
+    </div>
   </div>
 
   <!-- Modale générique -->

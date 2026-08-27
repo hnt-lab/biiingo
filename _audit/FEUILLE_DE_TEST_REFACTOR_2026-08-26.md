@@ -3,7 +3,7 @@
 ## Validé automatiquement
 
 - [x] Syntaxe et version cohérentes sur les 27 scripts applicatifs.
-- [x] 23 tests unitaires : cartons, victoire, données, état, sécurité HTML, images et modules extraits.
+- [x] 28 tests unitaires : cartons, victoire, données, état, sécurité HTML, images, jetons et modules extraits.
 - [x] 11 scénarios de règles Firestore dans l'émulateur officiel.
 - [x] Création d'un compte MC et d'une soirée depuis l'interface.
 - [x] Ouverture d'un écran public anonyme par code.
@@ -23,14 +23,20 @@
 
 ## À valider sur appareils physiques avant fusion
 
-- [ ] Téléphone joueur : secousse, seuil de déclenchement et réservoir de jetons.
-- [ ] Téléphone joueur : rotation portrait/paysage, changement d'application et retour Android.
-- [ ] Téléphone joueur : fluidité des jetons et lisibilité des mini-cartons.
-- [ ] PC/projecteur : plein écran, sortie audio réelle et reprise après actualisation.
+- [ ] Téléphone joueur : secousse réelle et seuil de déclenchement sur une version HTTPS.
+- [x] Téléphone joueur : chute à la rotation, réservoir protégé, recalibrage et réaccrochage des jetons.
+- [x] Téléphone joueur : changement d'application, reprise et chute des jetons au retour.
+- [x] Téléphone joueur : bouton retour Android, reprise de session et persistance des jetons après actualisation.
+- [x] Téléphone joueur : fluidité, quatre mini-cartons lisibles et marques indépendantes par carton.
+- [x] PC/projecteur : plein écran, sortie audio réelle et reprise après actualisation.
+- [x] Bureau : contrôle visuel des deux colonnes et redimensionnement grand/petit.
+- [x] Réseau réel : coupure du téléphone, tirage hors ligne puis resynchronisation automatique sans actualisation.
+- [ ] Réseau réel : répéter la coupure sur les interfaces MC, salle et éditeur.
+
+## Fonctionnalités différées — hors périmètre du socle stable
+
 - [ ] Smart TV : navigation au clavier/télécommande, QR et fluidité du tableau.
 - [ ] Chromecast compatible : lancement, annulation et message de diagnostic.
-- [ ] Bureau : contrôle visuel des deux colonnes et redimensionnement grand/petit.
-- [ ] Réseau réel : coupure courte puis resynchronisation des quatre interfaces.
 
 ## Publication
 

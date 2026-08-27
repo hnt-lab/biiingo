@@ -16,7 +16,9 @@ const {
   lignesGagnantes,
   cartonComplet,
   cartonsVersDb,
-  cartonsDepuisDb
+  cartonsDepuisDb,
+  marquesVersDb,
+  marquesDepuisDb
 } = context;
 
 function validateCarton(carton) {
@@ -72,4 +74,18 @@ test('préserve les cartons pendant un aller-retour Firestore', () => {
     JSON.parse(JSON.stringify(cartonsDepuisDb(cartonsVersDb(cartons)))),
     JSON.parse(JSON.stringify(cartons))
   );
+});
+
+test('préserve et filtre les jetons marqués pendant un aller-retour Firestore', () => {
+  const cartons = genCartons(2);
+  const firstNumbers = cartonNums(cartons[0]);
+  const secondNumbers = cartonNums(cartons[1]);
+  const serialized = marquesVersDb([
+    new Set(firstNumbers.slice(0, 3)),
+    new Set(secondNumbers.slice(0, 2))
+  ]);
+  serialized[0] += ',999';
+  const restored = marquesDepuisDb(serialized, cartons);
+  assert.equal([...restored[0]].join(','), firstNumbers.slice(0, 3).sort((a, b) => a - b).join(','));
+  assert.equal([...restored[1]].join(','), secondNumbers.slice(0, 2).sort((a, b) => a - b).join(','));
 });
