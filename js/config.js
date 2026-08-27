@@ -22,7 +22,7 @@ const NB_NUMEROS = 90;
 // ---- Mode joueur ----
 const JETONS_PRESETS = ['🔴', '💖', '⭐', '💋', '🍀', '💀']; // styles de jetons proposés
 const JETON_IMG_SIZE = 128;          // px — jeton créé à partir d'une image (rond bordé)
-const SECOUSSE_SEUIL = 8;            // m/s² — sensible aux secousses modérées sans réagir aux petits gestes
+const SECOUSSE_SEUIL = 7;            // m/s² — sensible aux secousses légères sans réagir aux petits gestes
 const JOUEUR_MAX_CARTONS = 4;
 
 // Sons personnalisés (envoyés depuis l'app, stockés avec le compte)
