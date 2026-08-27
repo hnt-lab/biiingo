@@ -23,6 +23,7 @@ Toutes les interfaces utilisent aujourd'hui la même page et un état partagé. 
 - `js/image-utils.js` : lecture, redimensionnement et compression des images.
 - `js/auth.js`, `js/profil.js` : authentification et compte.
 - `js/mc.js`, `js/editeur.js`, `js/verification.js` : télécommande et configuration.
+- `js/editeur-sons.js`, `js/editeur-contenu.js` : sons, programme, écrans personnalisés et présets.
 - `js/mc-display.js`, `js/public-display.js` : diffusion TV/Cast et entrée d'un écran public.
 - `js/feedback.js` : retours facultatifs des utilisateurs.
 - `js/salle.js`, `js/anims.js`, `js/sons.js` : rendu public et ambiance.

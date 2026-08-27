@@ -77,8 +77,12 @@ ne doivent être publiées qu'avec le code correspondant, après la campagne man
 - État joueur extrait dans `js/joueur-state.js` et exposé via `window.J` : le retour Android peut désormais
   détecter une partie joueur active comme le prévoyait déjà `core.js`.
 - Liens et QR codes de la salle extraits dans `js/salle-qr.js` avec test de l'URL joueur encodée.
-- Taille après extraction : `core.js` 356 lignes, `mc.js` 324 lignes, `editeur.js` 514 lignes.
-- Validation automatisée du lot : 25 scripts valides, 20 tests unitaires, 11 scénarios Firestore,
+- Sons personnalisés et réglages audio extraits dans `js/editeur-sons.js`.
+- Accueil, programme, fin et présets extraits dans `js/editeur-contenu.js` avec transformations non mutantes.
+- Ancien message d'erreur faisant référence à Claude remplacé par une consigne utilisateur durable.
+- Guide d'installation rendu autonome et complété avec l'activation obligatoire de l'authentification anonyme.
+- Taille après extraction : `core.js` 356 lignes, `mc.js` 324 lignes, `editeur.js` 320 lignes.
+- Validation automatisée du lot : 27 scripts valides, 23 tests unitaires, 11 scénarios Firestore,
   Chrome local et site GitHub Pages public tous verts.
 
 ## Ordre de travail retenu
