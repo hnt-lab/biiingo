@@ -60,6 +60,24 @@ Une première archive plus petite existe également mais n'inclut pas `.git` ; e
 Ce lot n'est ni fusionné, ni poussé, ni déployé. Les règles Firestore du fichier `_setup/firestore.rules`
 ne doivent être publiées qu'avec le code correspondant, après la campagne manuelle de validation.
 
+## Lot de découpage structurel — en cours
+
+- État partagé extrait dans `js/state.js` et rendu explicitement accessible via `window.S`.
+- Défaut corrigé : le mode joueur testait `window.S`, auparavant absent malgré l'intention du code.
+- Outils d'interface extraits de `core.js` vers `js/ui.js`.
+- Traitements PNG, JPEG et jeton rond extraits de l'éditeur vers `js/image-utils.js`.
+- Calculs de redimensionnement et de recadrage isolés et testés.
+- Affichage public et normalisation des codes extraits vers `js/public-display.js`.
+- Feedback extrait vers `js/feedback.js`.
+- TV, QR et Cast extraits de `mc.js` vers `js/mc-display.js`.
+- Test Chrome enrichi : état partagé, vraie compression PNG/JPEG et génération d'un jeton rond.
+- Test de production rendu portable entre Windows, macOS et Linux, sans dépendre de la version locale en préparation.
+- Workflow GitHub Actions corrigé : installation reproductible des dépendances avec `npm ci` et cache npm.
+- Feedback relié sans réinjecter son origine dans un attribut JavaScript HTML.
+- Taille après extraction : `core.js` 356 lignes, `mc.js` 324 lignes, `editeur.js` 514 lignes.
+- Validation automatisée du lot : 23 scripts valides, 18 tests unitaires, 11 scénarios Firestore,
+  Chrome local et site GitHub Pages public tous verts.
+
 ## Ordre de travail retenu
 
 1. Figer les comportements métier testables.

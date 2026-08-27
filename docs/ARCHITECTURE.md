@@ -11,13 +11,19 @@ Biiingo est une application Web statique servie par GitHub Pages. Le navigateur 
 - **Joueur** : rejoint par code ou QR, reçoit ses cartons et manipule ses jetons.
 - **Affichage public** : ouvre la vue salle en lecture seule après authentification anonyme invisible.
 
-Toutes les interfaces utilisent aujourd'hui la même page et un état global partagé. Les scripts sont chargés séquentiellement depuis `index.html` et exposent leurs fonctions dans le contexte global du navigateur.
+Toutes les interfaces utilisent aujourd'hui la même page et un état partagé. Les scripts sont chargés séquentiellement depuis `index.html` ; les fonctions encore appelées par les attributs HTML restent accessibles dans le contexte global pendant la migration progressive.
 
 ## Répartition actuelle
 
-- `js/core.js` : état global, navigation, soirées et accès communs à Firestore.
+- `js/state.js` : état partagé explicitement exposé aux interfaces historiques.
+- `js/ui.js` : échappement HTML, modales, notifications et navigation visuelle.
+- `js/core.js` : navigation applicative, soirées et synchronisation temps réel.
+- `js/data.js` : suppressions Firestore cohérentes et traitement par lots.
+- `js/image-utils.js` : lecture, redimensionnement et compression des images.
 - `js/auth.js`, `js/profil.js` : authentification et compte.
 - `js/mc.js`, `js/editeur.js`, `js/verification.js` : télécommande et configuration.
+- `js/mc-display.js`, `js/public-display.js` : diffusion TV/Cast et entrée d'un écran public.
+- `js/feedback.js` : retours facultatifs des utilisateurs.
 - `js/salle.js`, `js/anims.js`, `js/sons.js` : rendu public et ambiance.
 - `js/joueur.js`, `js/cartons.js`, `js/jetons.js` : expérience joueur.
 - `_setup/firestore.rules` : autorisations de la base de données.
@@ -33,6 +39,7 @@ Toutes les interfaces utilisent aujourd'hui la même page et un état global par
 ## Validation
 
 - `npm run check` : syntaxe des scripts.
-- `npm test` : tests métier et cohérence du paquet publié.
-- GitHub Actions exécute ces deux commandes sur les branches de refactoring et les demandes de fusion vers `main`.
+- `npm test` : tests métier, règles Firestore et parcours critique dans un vrai navigateur local.
+- `npm run test:production` : contrôle en lecture du site actuellement publié sur GitHub Pages.
+- GitHub Actions exécute `npm run check` puis `npm test` sur les branches de refactoring et les demandes de fusion vers `main`.
 - Les scénarios nécessitant Firebase, plusieurs appareils, le mouvement ou une TV restent dans la feuille de test manuel.

@@ -242,29 +242,6 @@ function edAnimDelVedette(type) {
   edAnimRefresh();
 }
 
-// Compression PNG (conserve la TRANSPARENCE — pas de conversion JPEG)
-function compressImagePng(file, maxDim) {
-  return new Promise(resolve => {
-    if (!file) { resolve(null); return; }
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let w = img.width, h = img.height;
-      const ratio = Math.min(1, maxDim / Math.max(w, h));
-      w = Math.round(w * ratio); h = Math.round(h * ratio);
-      const cv = document.createElement('canvas');
-      cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      const data = cv.toDataURL('image/png');
-      if (data.length > 420000) { toast('Cette image reste trop lourde même réduite — choisis un PNG plus simple.'); resolve(null); return; }
-      resolve(data);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
-    img.src = url;
-  });
-}
-
 // ---------- Mode joueur (réglages) ----------
 function edJoueursToggle() {
   const actif = S.soiree.joueursActif !== false;
@@ -278,39 +255,6 @@ async function edJetonImage(input) {
   soireeUpdate({ jetonDefaut: { type: 'image', val: data } });
   toast('Jeton personnalisé créé 🎉');
   edAnimRefresh();
-}
-
-// Jeton rond à partir d'une image : recadrage circulaire + bordure dorée
-function compressImageCircle(file, size) {
-  return new Promise(resolve => {
-    if (!file) { resolve(null); return; }
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      const cv = document.createElement('canvas');
-      cv.width = cv.height = size;
-      const ctx = cv.getContext('2d');
-      // cercle de découpe
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      // image en mode "cover" (remplit le cercle)
-      const ratio = Math.max(size / img.width, size / img.height);
-      const w = img.width * ratio, h = img.height * ratio;
-      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
-      // bordure dorée
-      ctx.beginPath();
-      ctx.arc(size / 2, size / 2, size / 2 - 3, 0, Math.PI * 2);
-      ctx.lineWidth = 6;
-      ctx.strokeStyle = '#e8c558';
-      ctx.stroke();
-      resolve(cv.toDataURL('image/png'));
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
-    img.src = url;
-  });
 }
 
 // ---------- Bandeau (éditable en cours de route) ----------
@@ -567,30 +511,4 @@ async function edSavePreset() {
     toast('Enregistrement impossible (préset trop lourd en photos ?).');
   }
   closeModal();
-}
-
-// ---------- Compression d'image (JPEG, taille max paramétrable) ----------
-function compressImage(file, maxDim, quality) {
-  maxDim = maxDim || PHOTO_MAX_DIM;
-  quality = quality || PHOTO_QUALITY;
-  return new Promise(resolve => {
-    if (!file) { resolve(null); return; }
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      let w = img.width, h = img.height;
-      const ratio = Math.min(1, maxDim / Math.max(w, h));
-      w = Math.round(w * ratio); h = Math.round(h * ratio);
-      const cv = document.createElement('canvas');
-      cv.width = w; cv.height = h;
-      cv.getContext('2d').drawImage(img, 0, 0, w, h);
-      // Une image doit tenir dans son document (< 1 Mo) : on baisse la qualité si besoin
-      let q = quality, data = cv.toDataURL('image/jpeg', q);
-      while (data.length > 950000 && q > 0.35) { q -= 0.12; data = cv.toDataURL('image/jpeg', q); }
-      resolve(data);
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); toast('Impossible de lire cette image.'); resolve(null); };
-    img.src = url;
-  });
 }

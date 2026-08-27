@@ -47,7 +47,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-const externalUrl = process.env.SMOKE_URL?.replace(/\/$/, '');
+const externalUrl = (process.argv[2] || process.env.SMOKE_URL)?.replace(/\/$/, '');
+const expectedVersion = externalUrl ? process.env.SMOKE_EXPECTED_VERSION : packageData.version;
 if (!externalUrl) await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const targetUrl = externalUrl || `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ executablePath, headless: true });
@@ -67,14 +68,51 @@ try {
 
   const state = await page.evaluate(() => ({
     firebaseLoaded: typeof firebase !== 'undefined',
+    sharedStateExposed: typeof S !== 'undefined' && window.S === S,
     version: document.querySelector('#verLabel')?.textContent,
     title: document.title
   }));
 
   if (runtimeErrors.length) throw new Error(runtimeErrors.join('\n'));
   if (!state.firebaseLoaded) throw new Error('Firebase ne s’est pas chargé.');
-  if (state.version !== `v${packageData.version}`) throw new Error(`Version inattendue : ${state.version}`);
+  if (!externalUrl && !state.sharedStateExposed) throw new Error('L’état partagé window.S n’est pas exposé.');
+  if (!/^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(state.version || '')) {
+    throw new Error(`Version invalide : ${state.version}`);
+  }
+  if (expectedVersion && state.version !== `v${expectedVersion}`) {
+    throw new Error(`Version inattendue : ${state.version}`);
+  }
   if (state.title !== 'Biiingo ✨') throw new Error(`Titre inattendu : ${state.title}`);
+
+  const imageResults = await page.evaluate(async () => {
+    const source = document.createElement('canvas');
+    source.width = 1000;
+    source.height = 500;
+    const context = source.getContext('2d');
+    context.fillStyle = '#b52d73';
+    context.fillRect(0, 0, source.width, source.height);
+    const blob = await new Promise(resolve => source.toBlob(resolve, 'image/png'));
+
+    const dimensions = data => new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve([image.width, image.height]);
+      image.onerror = reject;
+      image.src = data;
+    });
+
+    const png = await compressImagePng(blob, 100);
+    const jpeg = await compressImage(blob, 100, 0.7);
+    const circle = await compressImageCircle(blob, 64);
+    return {
+      png: await dimensions(png),
+      jpeg: await dimensions(jpeg),
+      circle: await dimensions(circle)
+    };
+  });
+
+  if (JSON.stringify(imageResults.png) !== '[100,50]') throw new Error('Compression PNG incorrecte.');
+  if (JSON.stringify(imageResults.jpeg) !== '[100,50]') throw new Error('Compression JPEG incorrecte.');
+  if (JSON.stringify(imageResults.circle) !== '[64,64]') throw new Error('Compression du jeton incorrecte.');
 
   await page.goto(`${targetUrl}/?display=CODEX-NONEXISTANT`, { waitUntil: 'load', timeout: 30_000 });
   await page.waitForFunction(() => {
@@ -91,7 +129,7 @@ try {
     }
   });
 
-  console.log(`Chargement et connexion Firebase validés sur ${targetUrl} avec ${executablePath}.`);
+  console.log(`Chargement, version ${state.version} et connexion Firebase validés sur ${targetUrl} avec ${executablePath}.`);
 } finally {
   await browser.close();
   if (server.listening) await new Promise(resolve => server.close(resolve));
