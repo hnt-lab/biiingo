@@ -1,16 +1,6 @@
 // MODE JOUEUR : rejoindre par QR/code, carton(s) dématérialisé(s), jetons physiques,
 // alertes de quine, élimination en mort subite, fin de soirée + nudge compte.
 
-const J = {
-  code: null, soireeId: null, soiree: null, prev: null, unsub: null,
-  uid: null, nom: '', invite: true,
-  cartons: [],            // tableaux 3×9
-  actif: 0,               // index du carton affiché
-  marques: [],            // un Set de numéros marqués par carton
-  alertes: {},            // niveaux déjà signalés cette manche
-  elimine: false, etatAffiche: null
-};
-
 // ---------- Entrée (depuis ?join=CODE ou session reprise) ----------
 function joueurInit(code) {
   J.code = code.toUpperCase();

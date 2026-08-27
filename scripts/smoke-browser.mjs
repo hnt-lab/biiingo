@@ -64,10 +64,11 @@ try {
   });
 
   await page.goto(`${targetUrl}/`, { waitUntil: 'load', timeout: 30_000 });
-  await page.waitForSelector('#authScreen.active', { timeout: 15_000 });
+  await page.waitForSelector('#authScreen.active', { timeout: 30_000 });
 
   const state = await page.evaluate(() => ({
     firebaseLoaded: typeof firebase !== 'undefined',
+    sharedPlayerStateExposed: typeof J !== 'undefined' && window.J === J,
     sharedStateExposed: typeof S !== 'undefined' && window.S === S,
     version: document.querySelector('#verLabel')?.textContent,
     title: document.title
@@ -75,6 +76,7 @@ try {
 
   if (runtimeErrors.length) throw new Error(runtimeErrors.join('\n'));
   if (!state.firebaseLoaded) throw new Error('Firebase ne s’est pas chargé.');
+  if (!externalUrl && !state.sharedPlayerStateExposed) throw new Error('L’état joueur window.J n’est pas exposé.');
   if (!externalUrl && !state.sharedStateExposed) throw new Error('L’état partagé window.S n’est pas exposé.');
   if (!/^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(state.version || '')) {
     throw new Error(`Version invalide : ${state.version}`);
@@ -83,6 +85,22 @@ try {
     throw new Error(`Version inattendue : ${state.version}`);
   }
   if (state.title !== 'Biiingo ✨') throw new Error(`Titre inattendu : ${state.title}`);
+
+  if (!externalUrl) {
+    const playerBackAction = await page.evaluate(() => {
+      const originalConfirmAction = window.confirmAction;
+      let capturedAction = null;
+      window.confirmAction = (message, label, action) => { capturedAction = { message, label, action }; };
+      J.soireeId = 'smoke-player';
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      J.soireeId = null;
+      window.confirmAction = originalConfirmAction;
+      return capturedAction;
+    });
+    if (playerBackAction?.action !== 'joueurQuitter()') {
+      throw new Error('Le retour Android ne détecte pas la partie joueur active.');
+    }
+  }
 
   const imageResults = await page.evaluate(async () => {
     const source = document.createElement('canvas');

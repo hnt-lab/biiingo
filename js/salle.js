@@ -1,12 +1,11 @@
 // Écran de salle (PC + projecteur + sono). PASSIF : affiche l'état de la soirée et joue les sons.
 
 let salleEtatAffiche = null; // dernier état rendu (pour reconstruire uniquement quand ça change)
-let salleQrUrl = null;
 
 // Préparation de l'affichage. gesture = vrai si on arrive via un clic (autorise plein écran + son direct)
 function salleOpenInit(gesture) {
   salleEtatAffiche = null;
-  salleQrUrl = null;
+  salleQrReset();
   if (gesture) salleReadyClick();
   salleUpdateReadyBtn();
 }
@@ -161,37 +160,6 @@ function salleAccueilHtml(s) {
       <span>📱 Scanne pour jouer !</span>
     </div>` : ''}
   </div>`;
-}
-
-// URL que les joueurs scannent pour rejoindre
-function salleJoinUrl(s) {
-  return location.origin + location.pathname + '?join=' + encodeURIComponent(s.code);
-}
-
-function salleMakeQrJoin(s) {
-  const box = $('#qrAccueil');
-  if (!box || !window.QRCode || box.childNodes.length) return;
-  try {
-    new QRCode(box, { text: salleJoinUrl(s), width: 150, height: 150, colorDark: '#1a1426', colorLight: '#ffffff' });
-  } catch (e) {}
-}
-
-// Popup QR à la demande de l'animateur, par-dessus n'importe quel écran
-function renderQrPopup(s) {
-  const el = $('#salleQrPopup');
-  const visible = !!s.qrPopup && s.joueursActif !== false;
-  el.classList.toggle('show', visible);
-  if (visible && !el.dataset.code) {
-    el.dataset.code = s.code;
-    el.innerHTML = `<div class="qr-popup-carte">
-      <div id="qrPopupBox"></div>
-      <div class="qr-popup-txt">📱 Rejoins la partie !<br><b>${esc(s.code)}</b></div>
-    </div>`;
-    try {
-      new QRCode($('#qrPopupBox'), { text: salleJoinUrl(s), width: 220, height: 220, colorDark: '#1a1426', colorLight: '#ffffff' });
-    } catch (e) {}
-  }
-  if (!visible) { el.dataset.code = ''; el.innerHTML = ''; }
 }
 
 // ---------- État : TIRAGE ----------
@@ -358,19 +326,6 @@ function salleHofScroll() {
       track.style.animation = 'none';
     }
   });
-}
-
-function salleMakeQr(s) {
-  const e = (s.ecrans && s.ecrans.fin) || {};
-  if (!e.qrUrl || !window.QRCode) return;
-  const box = $('#qrBox');
-  if (!box) return;
-  if (salleQrUrl === e.qrUrl && box.childNodes.length) return;
-  salleQrUrl = e.qrUrl;
-  box.innerHTML = '';
-  try {
-    new QRCode(box, { text: e.qrUrl, width: 140, height: 140, colorDark: '#1a1426', colorLight: '#ffffff' });
-  } catch (err) {}
 }
 
 // ---------- Bandeau défilant ----------
