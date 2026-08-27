@@ -85,3 +85,17 @@ function cartonsDepuisDb(arr) {
     return [flat.slice(0, 9), flat.slice(9, 18), flat.slice(18, 27)];
   });
 }
+
+function marquesVersDb(marques) {
+  return (marques || []).map(marked => [...marked].sort((a, b) => a - b).join(','));
+}
+
+function marquesDepuisDb(arr, cartons) {
+  return (cartons || []).map((carton, index) => {
+    const allowed = new Set(cartonNums(carton));
+    const values = typeof (arr && arr[index]) === 'string' && arr[index]
+      ? arr[index].split(',').map(Number)
+      : [];
+    return new Set(values.filter(number => Number.isInteger(number) && allowed.has(number)));
+  });
+}

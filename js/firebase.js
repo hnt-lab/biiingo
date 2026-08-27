@@ -20,8 +20,14 @@ function firebaseConfigured() {
 
 function initFirebase() {
   if (!firebaseConfigured()) return false;
-  const useEmulators = !!window.__BIIINGO_EMULATORS &&
-    (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+  const emulatorOptions = window.__BIIINGO_EMULATORS;
+  const useEmulators = !!emulatorOptions &&
+    (location.hostname === '127.0.0.1' || location.hostname === 'localhost' ||
+      /^10\./.test(location.hostname) || /^192\.168\./.test(location.hostname) ||
+      /^172\.(1[6-9]|2\d|3[01])\./.test(location.hostname));
+  const emulatorHost = useEmulators && typeof emulatorOptions === 'object' && emulatorOptions.host
+    ? emulatorOptions.host
+    : '127.0.0.1';
   const config = useEmulators
     ? Object.assign({}, FIREBASE_CONFIG, { projectId: 'demo-biiingo', authDomain: 'demo-biiingo.firebaseapp.com' })
     : FIREBASE_CONFIG;
@@ -30,8 +36,8 @@ function initFirebase() {
   db = firebase.firestore();
   FV = firebase.firestore.FieldValue;
   if (useEmulators) {
-    fauth.useEmulator('http://127.0.0.1:9099', { disableWarnings: true });
-    db.useEmulator('127.0.0.1', 8080);
+    fauth.useEmulator(`http://${emulatorHost}:9099`, { disableWarnings: true });
+    db.useEmulator(emulatorHost, 8080);
   }
   // Tolérance aux coupures réseau : cache local, renvoi automatique à la reconnexion
   if (!useEmulators) {

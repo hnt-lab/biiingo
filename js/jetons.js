@@ -10,20 +10,23 @@ const Jetons = {
   aidHalo: new Set(),    // numéros à remettre (étaient bien posés avant une chute)
   style: { type: 'emoji', val: '🔴' },
   onChange: null,        // callback(markedSet) à chaque pose/chute
+  onLandscape: null,     // recalibrage du plateau après une rotation complète
   frozen: false,         // vérification en cours : tout est gelé
   reserve: null,         // zone-refuge {x,y,w,h} : les jetons y sont à l'abri des secousses
-  _drag: null, _raf: null,
+  _drag: null, _raf: null, _lastAccel: null, _lastDislodge: 0,
 
-  init(aireEl, style, onChange) {
+  init(aireEl, style, onChange, onLandscape) {
     this.destroy();
     this.aire = aireEl;
     if (style) this.style = style;
     this.onChange = onChange || null;
+    this.onLandscape = onLandscape || null;
     const M = window.Matter;
     if (!M) return; // lib non chargée : mode dégradé (tap simple géré par joueur.js)
     this.engine = M.Engine.create();
     this.world = this.engine.world;
     this.engine.gravity.y = 1;
+    try { this._orienteGravite(matchMedia('(orientation: portrait)').matches); } catch (e) {}
     const w = aireEl.clientWidth, h = aireEl.clientHeight, ep = 60;
     // murs autour de l'aire (les jetons ne quittent jamais l'écran)
     const opts = { isStatic: true };
@@ -78,7 +81,7 @@ const Jetons = {
     return r ? Math.min(r.w, r.h) * 0.38 : 18;
   },
 
-  spawn(nb, placedNums) {
+  spawn(nb, placedNums, fallenCount) {
     // jetons posés (repris d'un état précédent) + le reste dans la réserve (droite)
     const M = window.Matter;
     if (!M || !this.aire) return;
@@ -88,14 +91,23 @@ const Jetons = {
       const rect = this.cellRects[num];
       if (rect) this._creer(rect.x + rect.w / 2, rect.y + rect.h / 2, rayon, num);
     });
-    const restant = Math.max(0, nb - (placedNums || []).length);
+    const fallen = Math.max(0, Math.min(fallenCount || 0, nb - (placedNums || []).length));
+    const minX = Math.max(rayon + 12, 64);
+    const maxX = Math.max(minX, (this.reserve ? this.reserve.x : w) - rayon - 12);
+    for (let i = 0; i < fallen; i++) {
+      const ratio = (i + 1) / (fallen + 1);
+      const x = minX + (maxX - minX) * ratio;
+      const y = h - rayon - 10 - (i % 2) * Math.min(10, rayon * .35);
+      this._creer(x, y, rayon, 0, true);
+    }
+    const restant = Math.max(0, nb - (placedNums || []).length - fallen);
     for (let i = 0; i < restant; i++) {
       this._creer(w - 30 - Math.random() * 60, h - 30 - Math.random() * 80, rayon, 0);
     }
     this._notifie();
   },
 
-  _creer(x, y, rayon, num) {
+  _creer(x, y, rayon, num, fallen) {
     const M = window.Matter;
     const body = M.Bodies.circle(x, y, rayon, { restitution: .3, friction: .4, frictionAir: .02 });
     if (num) M.Body.setStatic(body, true);
@@ -110,7 +122,7 @@ const Jetons = {
       el.style.fontSize = (rayon * 1.3) + 'px';
     }
     this.aire.appendChild(el);
-    const jeton = { body, el, num: num || 0 };
+    const jeton = { body, el, num: num || 0, fallen: !!fallen };
     if (num) this.marked.add(num);
     this._pointer(jeton);
     this.bodies.push(jeton);
@@ -124,6 +136,7 @@ const Jetons = {
       jeton.el.setPointerCapture(e.pointerId);
       this._drag = jeton;
       if (jeton.num) { this.marked.delete(jeton.num); jeton.num = 0; jeton.el.classList.remove('pose'); this._notifie(); }
+      jeton.fallen = false;
       M.Body.setStatic(jeton.body, true);
     });
     jeton.el.addEventListener('pointermove', (e) => {
@@ -141,6 +154,7 @@ const Jetons = {
         if (p.x >= c.x && p.x <= c.x + c.w && p.y >= c.y && p.y <= c.y + c.h && !this.marked.has(+num)) {
           M.Body.setPosition(jeton.body, { x: c.x + c.w / 2, y: c.y + c.h / 2 });
           jeton.num = +num;
+          jeton.fallen = false;
           this.marked.add(+num);
           jeton.el.classList.add('pose');
           // pose CORRECTE (numéro réellement tiré) → mémorisée pour le halo d'aide après une chute
@@ -150,6 +164,7 @@ const Jetons = {
           return;
         }
       }
+      jeton.fallen = !this._dansReserve(jeton.body);
       M.Body.setStatic(jeton.body, false); // sinon il tombe
     };
     jeton.el.addEventListener('pointerup', lacher);
@@ -161,6 +176,7 @@ const Jetons = {
   dislodge(tires) {
     const M = window.Matter;
     if (!M || this.frozen) return;
+    const portrait = matchMedia('(orientation: portrait)').matches;
     let chute = false;
     this.bodies.forEach(j => {
       if (!j.num && this._dansReserve(j.body)) return; // au chaud dans le réservoir
@@ -168,11 +184,14 @@ const Jetons = {
         if (tires && tires.includes(j.num)) this.aidHalo.add(j.num);
         this.marked.delete(j.num);
         j.num = 0;
+        j.fallen = true;
         j.el.classList.remove('pose');
         chute = true;
-      }
+      } else j.fallen = true;
       M.Body.setStatic(j.body, false);
-      M.Body.setVelocity(j.body, { x: (Math.random() - .5) * 12, y: -4 - Math.random() * 5 });
+      M.Body.setVelocity(j.body, portrait
+        ? { x: 4 + Math.random() * 5, y: (Math.random() - .5) * 12 }
+        : { x: (Math.random() - .5) * 12, y: -4 - Math.random() * 5 });
       M.Body.setAngularVelocity(j.body, (Math.random() - .5) * .6);
     });
     if (chute) {
@@ -181,21 +200,58 @@ const Jetons = {
     }
   },
 
+  _declencheChute() {
+    const now = Date.now();
+    if (now - this._lastDislodge < 600) return;
+    this._lastDislodge = now;
+    this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
+  },
+
+  _orienteGravite(portrait) {
+    if (!this.engine) return;
+    this.engine.gravity.x = portrait ? 1 : 0;
+    this.engine.gravity.y = portrait ? 0 : 1;
+  },
+
   _ecouteSecousses() {
     if (this._secousseOk) return;
     this._secousseOk = true;
     window.addEventListener('devicemotion', (e) => {
-      const a = e.acceleration;
-      if (!a || !this.engine) return;
-      const mag = Math.sqrt((a.x || 0) ** 2 + (a.y || 0) ** 2 + (a.z || 0) ** 2);
-      if (mag > SECOUSSE_SEUIL) this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
+      if (!this.engine) return;
+      const direct = e.acceleration;
+      let mag = direct && [direct.x, direct.y, direct.z].some(Number.isFinite)
+        ? Math.sqrt((direct.x || 0) ** 2 + (direct.y || 0) ** 2 + (direct.z || 0) ** 2)
+        : 0;
+      const gravity = e.accelerationIncludingGravity;
+      if (!mag && gravity) {
+        const current = { x: gravity.x || 0, y: gravity.y || 0, z: gravity.z || 0 };
+        if (this._lastAccel) {
+          mag = Math.sqrt(
+            (current.x - this._lastAccel.x) ** 2 +
+            (current.y - this._lastAccel.y) ** 2 +
+            (current.z - this._lastAccel.z) ** 2
+          );
+        }
+        this._lastAccel = current;
+      }
+      if (mag > SECOUSSE_SEUIL) this._declencheChute();
     });
     // Tenter de repasser en portrait = tout tombe 💅 (demande utilisateur)
     try {
-      matchMedia('(orientation: portrait)').addEventListener('change', (e) => {
-        if (e.matches && this.engine) this.dislodge(window.S && S.soiree ? S.soiree.tires : []);
-      });
+      const portrait = matchMedia('(orientation: portrait)');
+      const onOrientation = (e) => {
+        this._orienteGravite(e.matches);
+        if (e.matches && this.engine) this._declencheChute();
+        else if (!e.matches && this.engine && this.onLandscape) {
+          setTimeout(() => { if (this.engine && this.onLandscape) this.onLandscape(); }, 250);
+        }
+      };
+      if (portrait.addEventListener) portrait.addEventListener('change', onOrientation);
+      else portrait.addListener(onOrientation);
     } catch (e) {}
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && this.engine) this._declencheChute();
+    });
   },
 
   _notifie() { if (this.onChange) this.onChange(this.marked); },

@@ -717,11 +717,27 @@ a { color: var(--rose); }
 
 /* Écran "tourne ton téléphone" (portrait) */
 .tourne-tel {
-  display: none; position: absolute; inset: 0; z-index: 80;
-  background: var(--bg); text-align: center; font-size: 1.4em; font-weight: 700;
-  flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  display: none; position: absolute; left: 50%; top: max(10px, env(safe-area-inset-top)); z-index: 80;
+  width: min(86vw, 360px); transform: translateX(-50%); padding: 10px 14px;
+  border: 1px solid var(--rose); border-radius: 16px; background: #1a1426dd;
+  box-shadow: 0 6px 24px #0009, 0 0 18px #ff5fa244;
+  text-align: left; font-size: 1em; font-weight: 700;
+  align-items: center; justify-content: center; gap: 10px; pointer-events: none;
 }
+.tourne-tel-emoji { font-size: 1.8em; line-height: 1; }
 @media (orientation: portrait) { #joueurScreen.active .tourne-tel { display: flex; } }
+@media (orientation: portrait) {
+  #joueurScreen.active #joueurContent {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform: rotate(90deg) translateY(-100%);
+    transform-origin: top left;
+    pointer-events: none;
+  }
+}
 
 .joueur-haut {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;

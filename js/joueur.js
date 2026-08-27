@@ -2,6 +2,30 @@
 // alertes de quine, élimination en mort subite, fin de soirée + nudge compte.
 
 // ---------- Entrée (depuis ?join=CODE ou session reprise) ----------
+function joueurCodeModal() {
+  modal(`
+    <h3>🎟 Rejoindre comme joueur</h3>
+    <p class="muted small">Aucun compte nécessaire : entre simplement le code donné par l'animateur.</p>
+    <label class="field"><span>Code de la soirée (4 lettres)</span>
+      <input id="joueurCode" type="text" maxlength="4" autocapitalize="characters"
+             style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:1.4em"
+             onkeydown="if(event.key==='Enter')joueurCodeValider()"></label>
+    <div class="modal-btns">
+      <button class="btn ghost" onclick="closeModal()">Annuler</button>
+      <button class="btn primary" onclick="joueurCodeValider()">Continuer</button>
+    </div>`);
+  setTimeout(() => $('#joueurCode').focus(), 50);
+}
+
+function joueurCodeValider() {
+  const code = $('#joueurCode').value.trim().toUpperCase();
+  if (code.length !== CODE_LENGTH) { toast('Le code fait 4 lettres.'); return; }
+  window.__joinCode = code;
+  history.replaceState(null, '', location.pathname + '?join=' + encodeURIComponent(code));
+  closeModal();
+  joueurInit(code);
+}
+
 function joueurInit(code) {
   J.code = code.toUpperCase();
   showScreen('joinScreen');
@@ -44,24 +68,37 @@ async function joueurEntrer(nom, invite) {
   // Récupère ou crée mon document joueur (cartons générés une fois)
   const ref = db.collection('soirees').doc(doc.id).collection('joueurs').doc(J.uid);
   const moi = await ref.get();
+  let savedMarks = null;
   if (moi.exists && moi.data().cartons && moi.data().cartons.length) {
     const d = moi.data();
     J.cartons = cartonsDepuisDb(d.cartons);
+    savedMarks = d.marques;
     J.elimine = !!d.elimine;
     if (d.nom) J.nom = d.nom;
+    try {
+      const localSession = JSON.parse(localStorage.getItem('biiingo_joueur') || 'null');
+      if (localSession && localSession.code === J.code && Array.isArray(localSession.marques)) {
+        savedMarks = localSession.marques;
+      }
+    } catch (e) {}
   } else {
     const nb = Math.min(JOUEUR_MAX_CARTONS, Math.max(1, s.nbCartons || 1));
     J.cartons = genCartons(nb);
     J.elimine = false;
     await ref.set({
       nom, invite, cartons: cartonsVersDb(J.cartons),
+      marques: marquesVersDb(J.cartons.map(() => new Set())),
       elimine: false, wins: 0, ts: FV.serverTimestamp()
     });
     joueurCompteParticipation(invite);
   }
-  J.marques = J.cartons.map(() => new Set());
+  J.marques = marquesDepuisDb(savedMarks, J.cartons);
   J.actif = 0; J.alertes = {}; J.prev = null; J.soiree = null;
-  try { localStorage.setItem('biiingo_joueur', JSON.stringify({ code: J.code, nom, invite })); } catch (e) {}
+  try {
+    localStorage.setItem('biiingo_joueur', JSON.stringify({
+      code: J.code, nom, invite, marques: marquesVersDb(J.marques)
+    }));
+  } catch (e) {}
 
   // Plein écran paysage (le clic de l'utilisateur nous y autorise)
   try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
@@ -147,7 +184,7 @@ function joueurRenderVerifOverlay(actif) {
   } else el.innerHTML = '';
 }
 
-function joueurRenderJeu(rebuild) {
+function joueurRenderJeu(rebuild, fallenCount) {
   const s = J.soiree;
   const c = $('#joueurContent');
   const obj = OBJECTIFS[s.objectif] || OBJECTIFS.quine;
@@ -168,7 +205,7 @@ function joueurRenderJeu(rebuild) {
         <div class="carton-grille" id="cartonGrille"></div>
         <div class="jetons-reserve"><span class="reserve-tag">🛟</span></div>
       </div>`;
-    joueurMonteCarton();
+    joueurMonteCarton(fallenCount);
   }
   // Objectif TOUJOURS à jour (il change en direct quand l'animateur le modifie)
   const objTxt = `${s.objectif === 'lose' ? '💀' : '🎯'} ${obj.label}`;
@@ -215,15 +252,16 @@ async function joueurChangerCartons() {
   J.marques = J.cartons.map(() => new Set());
   J.alertes = {}; J.actif = 0;
   Jetons.aidHalo = new Set();
+  joueurSauveMarques(false);
   await db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
-    .update({ cartons: cartonsVersDb(J.cartons) }).catch(() => {});
+    .update({ cartons: cartonsVersDb(J.cartons), marques: marquesVersDb(J.marques) }).catch(() => {});
   J.etatAffiche = null;
   joueurRender();
   toast('Nouveaux cartons distribués 🎴');
 }
 
 // Construit la grille du carton actif + branche la physique
-function joueurMonteCarton() {
+function joueurMonteCarton(fallenCount) {
   const grille = $('#cartonGrille');
   const carton = J.cartons[J.actif];
   if (!grille || !carton) return;
@@ -243,11 +281,18 @@ function joueurMonteCarton() {
       const r = el.getBoundingClientRect();
       rects[el.dataset.num] = { x: r.left - ar.left, y: r.top - ar.top, w: r.width, h: r.height };
     });
-    Jetons.init(aire, joueurStyleJeton(), () => joueurApresPose());
+    Jetons.init(aire, joueurStyleJeton(), () => joueurApresPose(), () => joueurRecalibreCarton());
     Jetons.cellRects = rects;
-    Jetons.spawn(15, [...J.marques[J.actif]]);
+    Jetons.spawn(15, [...J.marques[J.actif]], fallenCount);
     joueurMajHalos();
   });
+}
+
+function joueurRecalibreCarton() {
+  if (!$('#joueurScreen.active') || !J.soiree || J.etatAffiche !== 'tirage') return;
+  const fallenCount = Jetons.bodies.filter(jeton => jeton.fallen).length;
+  J.marques[J.actif] = new Set([...Jetons.marked]);
+  joueurRenderJeu(true, fallenCount);
 }
 
 function joueurStyleJeton() {
@@ -258,6 +303,7 @@ function joueurStyleJeton() {
 
 function joueurVaCarton(i) {
   J.marques[J.actif] = new Set([...Jetons.marked]);
+  joueurSauveMarques();
   J.actif = i;
   joueurRenderJeu(true);
 }
@@ -265,8 +311,27 @@ function joueurVaCarton(i) {
 // Après chaque pose/chute : synchronise l'état + vérifie les alertes
 function joueurApresPose() {
   J.marques[J.actif] = new Set([...Jetons.marked]);
+  joueurSauveMarques();
   joueurMajHalos();
   joueurVerifieAlerte();
+}
+
+function joueurSauveMarques(remote = true) {
+  const serialized = marquesVersDb(J.marques);
+  try {
+    const session = JSON.parse(localStorage.getItem('biiingo_joueur') || '{}');
+    localStorage.setItem('biiingo_joueur', JSON.stringify({
+      ...session,
+      code: J.code,
+      nom: J.nom,
+      invite: J.invite,
+      marques: serialized
+    }));
+  } catch (e) {}
+  if (remote && J.soireeId && J.uid) {
+    db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
+      .update({ marques: serialized }).catch(() => {});
+  }
 }
 
 // Halos d'aide : cases dont le numéro est TIRÉ et dont le jeton bien placé est tombé
@@ -346,10 +411,11 @@ function joueurNouvelleManche() {
   // Les joueurs GARDENT leurs cartons (habitude des habitués) — seuls les marquages repartent à zéro.
   // Changer de cartons = choix du joueur (bouton 🎴).
   J.marques = J.cartons.map(() => new Set());
+  joueurSauveMarques(false);
   J.alertes = {}; J.elimine = false;
   Jetons.aidHalo = new Set();
   db.collection('soirees').doc(J.soireeId).collection('joueurs').doc(J.uid)
-    .update({ elimine: false }).catch(() => {});
+    .update({ elimine: false, marques: marquesVersDb(J.marques) }).catch(() => {});
   J.etatAffiche = null;
 }
 

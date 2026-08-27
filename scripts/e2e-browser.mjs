@@ -96,8 +96,12 @@ try {
   await display.waitForSelector('#salleScreen.active', { timeout: 20_000 });
   await display.waitForFunction(() => S.soiree?.titre === 'Soirée E2E');
 
-  playerApp = await createAppPage(`/?join=${party.code}`);
+  playerApp = await createAppPage('/');
   const player = playerApp.page;
+  await player.waitForSelector('#authScreen.active', { timeout: 20_000 });
+  await player.click('button:has-text("Rejoindre une soirée comme joueur")');
+  await player.fill('#joueurCode', party.code);
+  await player.click('button:has-text("Continuer")');
   await player.waitForSelector('#joinScreen.active', { timeout: 20_000 });
   await player.fill('#joinNom', 'Joueuse E2E');
   await player.getByRole('button', { name: /Jouer en invité/ }).click();
