@@ -16,6 +16,7 @@ Toutes les interfaces utilisent aujourd'hui la même page et un état partagé. 
 ## Répartition actuelle
 
 - `js/state.js` : état partagé explicitement exposé aux interfaces historiques.
+- `js/joueur-state.js` : état du joueur exposé à la navigation et au moteur de jetons.
 - `js/ui.js` : échappement HTML, modales, notifications et navigation visuelle.
 - `js/core.js` : navigation applicative, soirées et synchronisation temps réel.
 - `js/data.js` : suppressions Firestore cohérentes et traitement par lots.
@@ -25,6 +26,7 @@ Toutes les interfaces utilisent aujourd'hui la même page et un état partagé. 
 - `js/mc-display.js`, `js/public-display.js` : diffusion TV/Cast et entrée d'un écran public.
 - `js/feedback.js` : retours facultatifs des utilisateurs.
 - `js/salle.js`, `js/anims.js`, `js/sons.js` : rendu public et ambiance.
+- `js/salle-qr.js` : liens d'accès joueur et QR codes de la salle.
 - `js/joueur.js`, `js/cartons.js`, `js/jetons.js` : expérience joueur.
 - `_setup/firestore.rules` : autorisations de la base de données.
 

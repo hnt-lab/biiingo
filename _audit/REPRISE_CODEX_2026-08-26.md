@@ -74,8 +74,11 @@ ne doivent être publiées qu'avec le code correspondant, après la campagne man
 - Test de production rendu portable entre Windows, macOS et Linux, sans dépendre de la version locale en préparation.
 - Workflow GitHub Actions corrigé : installation reproductible des dépendances avec `npm ci` et cache npm.
 - Feedback relié sans réinjecter son origine dans un attribut JavaScript HTML.
+- État joueur extrait dans `js/joueur-state.js` et exposé via `window.J` : le retour Android peut désormais
+  détecter une partie joueur active comme le prévoyait déjà `core.js`.
+- Liens et QR codes de la salle extraits dans `js/salle-qr.js` avec test de l'URL joueur encodée.
 - Taille après extraction : `core.js` 356 lignes, `mc.js` 324 lignes, `editeur.js` 514 lignes.
-- Validation automatisée du lot : 23 scripts valides, 18 tests unitaires, 11 scénarios Firestore,
+- Validation automatisée du lot : 25 scripts valides, 20 tests unitaires, 11 scénarios Firestore,
   Chrome local et site GitHub Pages public tous verts.
 
 ## Ordre de travail retenu

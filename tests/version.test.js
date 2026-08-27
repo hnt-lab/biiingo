@@ -22,7 +22,7 @@ test('charge tous les fichiers JavaScript applicatifs avec le cache-buster', () 
     .match(/'([^']+)'/g)
     .map(value => value.slice(1, -1));
   const expectedFiles = [
-    'version', 'config', 'state', 'ui', 'image-utils', 'sons', 'firebase', 'data', 'public-display', 'feedback', 'auth', 'core', 'anims', 'salle',
+    'version', 'config', 'state', 'joueur-state', 'ui', 'image-utils', 'sons', 'firebase', 'data', 'public-display', 'feedback', 'auth', 'core', 'anims', 'salle-qr', 'salle',
     'verification', 'mc', 'mc-display', 'editeur', 'tuto', 'profil', 'cartons', 'jetons', 'joueur'
   ];
 
