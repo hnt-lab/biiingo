@@ -81,6 +81,10 @@ ne doivent être publiées qu'avec le code correspondant, après la campagne man
 - Accueil, programme, fin et présets extraits dans `js/editeur-contenu.js` avec transformations non mutantes.
 - Ancien message d'erreur faisant référence à Claude remplacé par une consigne utilisateur durable.
 - Guide d'installation rendu autonome et complété avec l'activation obligatoire de l'authentification anonyme.
+- Parcours E2E isolé ajouté avec Firebase Auth et Firestore émulés : création du MC et de la soirée,
+  écran public, joueur invité, joueur avec compte, compteur, tirage, édition, son, bandeau, vérification,
+  gel des joueurs, entracte, écran de fin et suppression de la soirée.
+- Ce parcours E2E est intégré à `npm test`, donc au contrôle GitHub Actions et à `deploy.bat`.
 - Taille après extraction : `core.js` 356 lignes, `mc.js` 324 lignes, `editeur.js` 320 lignes.
 - Validation automatisée du lot : 27 scripts valides, 23 tests unitaires, 11 scénarios Firestore,
   Chrome local et site GitHub Pages public tous verts.

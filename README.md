@@ -15,7 +15,9 @@ npm.cmd run check
 npm.cmd test
 ```
 
-`npm run check` valide la syntaxe de tous les scripts applicatifs. `npm test` contrôle les règles métier, les autorisations Firestore avec l'émulateur et le chargement de la page dans un vrai navigateur Chromium.
+`npm run check` valide la syntaxe de tous les scripts applicatifs. `npm test` contrôle les règles métier,
+les autorisations Firestore, puis un parcours isolé dans quatre contextes Chromium : MC, écran public,
+joueur invité et joueur avec compte. Firebase Authentication et Firestore utilisent uniquement les émulateurs locaux pendant ce scénario.
 
 `npm run test:production` contrôle séparément la version actuellement publiée sur GitHub Pages, sans écrire de donnée métier.
 

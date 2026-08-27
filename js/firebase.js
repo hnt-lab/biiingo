@@ -20,11 +20,22 @@ function firebaseConfigured() {
 
 function initFirebase() {
   if (!firebaseConfigured()) return false;
-  firebase.initializeApp(FIREBASE_CONFIG);
+  const useEmulators = !!window.__BIIINGO_EMULATORS &&
+    (location.hostname === '127.0.0.1' || location.hostname === 'localhost');
+  const config = useEmulators
+    ? Object.assign({}, FIREBASE_CONFIG, { projectId: 'demo-biiingo', authDomain: 'demo-biiingo.firebaseapp.com' })
+    : FIREBASE_CONFIG;
+  firebase.initializeApp(config);
   fauth = firebase.auth();
   db = firebase.firestore();
   FV = firebase.firestore.FieldValue;
+  if (useEmulators) {
+    fauth.useEmulator('http://127.0.0.1:9099', { disableWarnings: true });
+    db.useEmulator('127.0.0.1', 8080);
+  }
   // Tolérance aux coupures réseau : cache local, renvoi automatique à la reconnexion
-  db.enablePersistence({ synchronizeTabs: true }).catch(() => { /* multi-onglets ou non supporté : OK sans */ });
+  if (!useEmulators) {
+    db.enablePersistence({ synchronizeTabs: true }).catch(() => { /* multi-onglets ou non supporté : OK sans */ });
+  }
   return true;
 }
