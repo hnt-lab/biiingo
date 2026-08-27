@@ -23,11 +23,12 @@
 
 ## À valider sur appareils physiques avant fusion
 
-- [ ] Téléphone joueur : secousse réelle et seuil de déclenchement sur une version HTTPS.
+- [x] Téléphone joueur : secousse réelle et seuil de déclenchement sur une version HTTPS.
 - [x] Téléphone joueur : chute à la rotation, réservoir protégé, recalibrage et réaccrochage des jetons.
 - [x] Téléphone joueur : changement d'application, reprise et chute des jetons au retour.
 - [x] Téléphone joueur : bouton retour Android, reprise de session et persistance des jetons après actualisation.
 - [x] Téléphone joueur : fluidité, quatre mini-cartons lisibles et marques indépendantes par carton.
+- [x] Téléphone joueur : géométrie stable après plein écran, rotations, changements d'application et reconnexion réseau.
 - [x] PC/projecteur : plein écran, sortie audio réelle et reprise après actualisation.
 - [x] Bureau : contrôle visuel des deux colonnes et redimensionnement grand/petit.
 - [x] Réseau réel : coupure du téléphone, tirage hors ligne puis resynchronisation automatique sans actualisation.

@@ -24,13 +24,15 @@ const page = await context.newPage();
 let displayContext = null;
 let displayPage = null;
 const suffix = Date.now();
+const testEmail = `mc-physique-${suffix}@biiingo.test`;
+const testPassword = 'Biiingo-Physique-2026';
 
 await page.goto(targetUrl, { waitUntil: 'load', timeout: 30_000 });
 await page.waitForSelector('#authScreen.active', { timeout: 30_000 });
 await page.click('#authToSignup');
 await page.fill('#authPseudo', 'MC Test physique');
-await page.fill('#authEmail', `mc-physique-${suffix}@biiingo.test`);
-await page.fill('#authPwd', 'Biiingo-Physique-2026');
+await page.fill('#authEmail', testEmail);
+await page.fill('#authPwd', testPassword);
 await page.click('#authSignupBtn');
 await page.waitForSelector('#homeScreen.active', { timeout: 20_000 });
 if (existingCode) {
@@ -47,7 +49,7 @@ await page.waitForFunction(() => S.soiree?.code && S.soireeId);
 
 const party = await page.evaluate(() => ({ id: S.soireeId, code: S.soiree.code }));
 console.log(`\nSOIRÉE PHYSIQUE PRÊTE — CODE ${party.code}`);
-console.log('Commandes : status, start, draw NUMERO, cards NOMBRE, display, display-ready, display-refresh, display-size LARGEURxHAUTEUR, display-maximize, home, pause, resume, end, qr, quit\n');
+console.log('Commandes : status, start, draw NUMERO, cards NOMBRE, display, display-ready, display-refresh, display-size LARGEURxHAUTEUR, display-maximize, home, pause, resume, end, qr, cleanup, quit\n');
 
 const terminal = createInterface({ input: process.stdin, output: process.stdout, terminal: false });
 let commandQueue = Promise.resolve();
@@ -142,6 +144,29 @@ async function runCommand(line) {
   } else if (command === 'qr') {
     await page.evaluate(() => soireeUpdate({ qrPopup: !S.soiree.qrPopup }));
     console.log('Affichage du QR inversé.');
+  } else if (command === 'cleanup') {
+    await page.evaluate(async ({ expectedCode, password }) => {
+      const user = S.user;
+      const isTemporaryMc = /^mc-physique-\d+@biiingo\.test$/.test(user?.email || '');
+      const isExpectedParty = S.soiree?.titre === 'Test physique Biiingo'
+        && S.soiree?.code === expectedCode
+        && S.soiree?.ownerUid === user?.uid;
+      if (!isTemporaryMc || !isExpectedParty) {
+        throw new Error('Nettoyage refusé : la session active ne correspond pas au test physique temporaire.');
+      }
+      const uid = user.uid;
+      const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+      await user.reauthenticateWithCredential(credential);
+      if (S.unsub) { S.unsub(); S.unsub = null; }
+      if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
+      if (S.unsubJoueurs) { S.unsubJoueurs(); S.unsubJoueurs = null; }
+      await deleteUserData(uid);
+      await user.delete();
+    }, { expectedCode: party.code, password: testPassword });
+    console.log('Soirée, données et compte MC temporaire supprimés.');
+    terminal.close();
+    await browser.close();
+    if (controlServer?.listening) controlServer.close();
   } else if (command === 'quit') {
     terminal.close();
     await browser.close();

@@ -32,6 +32,44 @@ function joueurInit(code) {
   $('#joinCodeLabel').textContent = J.code;
 }
 
+let joueurRecalibrageTimer = null;
+
+function joueurEstPaysage() {
+  try { return !matchMedia('(orientation: portrait)').matches; } catch (e) { return innerWidth >= innerHeight; }
+}
+
+function joueurSignatureGeometrie() {
+  const aire = $('#joueurAire');
+  return aire ? `${aire.clientWidth}x${aire.clientHeight}` : '';
+}
+
+function joueurPlanifieRecalibrage(force, delay = 280) {
+  clearTimeout(joueurRecalibrageTimer);
+  joueurRecalibrageTimer = setTimeout(() => {
+    joueurRecalibrageTimer = null;
+    if (!joueurEstPaysage()) return;
+    joueurRecalibreCarton(!!force);
+  }, delay);
+}
+
+(function joueurEcouteGeometrie() {
+  window.addEventListener('resize', () => joueurPlanifieRecalibrage(false));
+  window.addEventListener('pageshow', () => joueurPlanifieRecalibrage(true));
+  document.addEventListener('fullscreenchange', () => joueurPlanifieRecalibrage(true, 360));
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') joueurPlanifieRecalibrage(false, 360);
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => joueurPlanifieRecalibrage(false));
+  }
+  try {
+    const portrait = matchMedia('(orientation: portrait)');
+    const onOrientation = e => { if (!e.matches) joueurPlanifieRecalibrage(true, 360); };
+    if (portrait.addEventListener) portrait.addEventListener('change', onOrientation);
+    else portrait.addListener(onOrientation);
+  } catch (e) {}
+})();
+
 async function joueurRejoindreInvite() {
   const nom = $('#joinNom').value.trim();
   if (!nom) { toast('Dis-nous ton prénom ou surnom !'); return; }
@@ -102,7 +140,6 @@ async function joueurEntrer(nom, invite) {
 
   // Plein écran paysage (le clic de l'utilisateur nous y autorise)
   try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
-  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
 
   showScreen('joueurScreen');
   armeRetour(); // le bouton retour Android propose de quitter au lieu de fermer l'app
@@ -191,6 +228,7 @@ function joueurRenderJeu(rebuild, fallenCount) {
   const last = (s.tires || []).length ? s.tires[s.tires.length - 1] : '—';
 
   if (rebuild || !$('#cartonGrille')) {
+    Jetons.destroy();
     c.innerHTML = `
       <div class="joueur-haut">
         <span class="joueur-obj" id="joueurObj"></span>
@@ -265,6 +303,8 @@ function joueurMonteCarton(fallenCount) {
   const grille = $('#cartonGrille');
   const carton = J.cartons[J.actif];
   if (!grille || !carton) return;
+  const montageId = (J._montageId || 0) + 1;
+  J._montageId = montageId;
   let html = '';
   for (let r = 0; r < 3; r++) for (let col = 0; col < 9; col++) {
     const n = carton[r][col];
@@ -272,7 +312,8 @@ function joueurMonteCarton(fallenCount) {
   }
   grille.innerHTML = html;
   // Mesure des cases pour la physique (repère = l'aire de jeu)
-  requestAnimationFrame(() => {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (J._montageId !== montageId || !grille.isConnected || !joueurEstPaysage()) return;
     const aire = $('#joueurAire');
     if (!aire) return;
     const ar = aire.getBoundingClientRect();
@@ -281,17 +322,22 @@ function joueurMonteCarton(fallenCount) {
       const r = el.getBoundingClientRect();
       rects[el.dataset.num] = { x: r.left - ar.left, y: r.top - ar.top, w: r.width, h: r.height };
     });
-    Jetons.init(aire, joueurStyleJeton(), () => joueurApresPose(), () => joueurRecalibreCarton());
+    if (!aire.clientWidth || !aire.clientHeight || Object.keys(rects).length !== 15) return;
+    Jetons.init(aire, joueurStyleJeton(), () => joueurApresPose(), () => joueurRecalibreCarton(true));
     Jetons.cellRects = rects;
     Jetons.spawn(15, [...J.marques[J.actif]], fallenCount);
+    J._geometrySignature = joueurSignatureGeometrie();
     joueurMajHalos();
-  });
+  }));
 }
 
-function joueurRecalibreCarton() {
-  if (!$('#joueurScreen.active') || !J.soiree || J.etatAffiche !== 'tirage') return;
-  const fallenCount = Jetons.bodies.filter(jeton => jeton.fallen).length;
-  J.marques[J.actif] = new Set([...Jetons.marked]);
+function joueurRecalibreCarton(force) {
+  if (!$('#joueurScreen.active') || !J.soiree || J.etatAffiche !== 'tirage' || !joueurEstPaysage()) return;
+  const signature = joueurSignatureGeometrie();
+  if (!force && Jetons.engine && signature === J._geometrySignature) return;
+  const engineActive = !!Jetons.engine;
+  const fallenCount = engineActive ? Jetons.bodies.filter(jeton => jeton.fallen).length : 0;
+  if (engineActive) J.marques[J.actif] = new Set([...Jetons.marked]);
   joueurRenderJeu(true, fallenCount);
 }
 
