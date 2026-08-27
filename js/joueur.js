@@ -67,7 +67,7 @@ async function joueurEntrer(nom, invite) {
       nom, invite, cartons: cartonsVersDb(J.cartons),
       elimine: false, wins: 0, ts: FV.serverTimestamp()
     });
-    joueurCompteParticipation(s.ownerUid, nom, invite);
+    joueurCompteParticipation(invite);
   }
   J.marques = J.cartons.map(() => new Set());
   J.actif = 0; J.alertes = {}; J.prev = null; J.soiree = null;
@@ -88,15 +88,11 @@ async function joueurEntrer(nom, invite) {
   });
 }
 
-// Participation comptée : invité → registre de l'organisateur ; compte → mes stats
-function joueurCompteParticipation(ownerUid, nom, invite) {
+// Les statistiques persistantes appartiennent uniquement au compte du joueur.
+// Les invités restent visibles dans la soirée, sans pouvoir écrire dans le registre MC.
+function joueurCompteParticipation(invite) {
   try {
-    if (invite) {
-      const key = slugName(nom);
-      if (key) db.collection('registres').doc(ownerUid).set({
-        noms: { [key]: { nom, participations: FV.increment(1) } }
-      }, { merge: true });
-    } else {
+    if (!invite) {
       db.collection('users').doc(J.uid).set({ stats: { participations: FV.increment(1) } }, { merge: true });
     }
   } catch (e) {}

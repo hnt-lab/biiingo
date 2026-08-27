@@ -386,10 +386,11 @@ async function mcSupprimer() {
   try {
     if (S.unsub) { S.unsub(); S.unsub = null; }
     if (S.unsubMedias) { S.unsubMedias(); S.unsubMedias = null; }
-    // Supprime aussi les images associées (espace médias)
-    const snap = await db.collection('medias').where('soireeId', '==', id).get();
-    await Promise.all(snap.docs.map(d => d.ref.delete().catch(() => {})));
-    await db.collection('soirees').doc(id).delete();
-  } catch (e) {}
-  quitSoiree();
+    await deleteSoireeData(id);
+    quitSoiree();
+    toast('Soirée supprimée.');
+  } catch (e) {
+    openSoiree(id, 'mc');
+    toast('Suppression impossible — vérifie ta connexion.');
+  }
 }
