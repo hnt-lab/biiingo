@@ -29,7 +29,7 @@ const context = createContext({
   }
 });
 
-for (const file of ['config.js', 'core.js']) {
+for (const file of ['config.js', 'state.js', 'ui.js', 'core.js']) {
   const source = readFileSync(join(__dirname, `../js/${file}`), 'utf8');
   runInContext(source, context, { filename: file });
 }

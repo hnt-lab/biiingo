@@ -1,72 +1,5 @@
 // Cœur de l'application : état, navigation, soirées, synchro temps réel.
 
-const S = {
-  user: null,        // utilisateur Firebase connecté
-  profile: null,     // document users/{uid}
-  mode: null,        // 'mc' ou 'salle'
-  soireeId: null,
-  soiree: null,      // données temps réel de la soirée ouverte
-  prev: null,        // état précédent (pour détecter les nouveautés côté salle)
-  unsub: null,       // arrêt de l'écoute temps réel
-  unsubMedias: null,
-  unsubJoueurs: null,
-  registre: {},      // registre des habitués (autocomplétion)
-  medias: {},
-  sonsCustom: {},
-  joueurs: [],
-  nbJoueurs: 0,
-  displayMode: false,
-  mcTab: 'tirage'    // onglet actif de la télécommande
-};
-
-// ---------- Petits outils ----------
-function $(sel) { return document.querySelector(sel); }
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-function escAttr(s) { return esc(s); }
-
-// Texte destiné à un titre en dégradé (background-clip:text) : on isole les emojis pour qu'ils
-// gardent leurs vraies couleurs au lieu d'être découpés en silhouette par le dégradé.
-let EMOJI_RE = null;
-try { EMOJI_RE = new RegExp('(\\p{Extended_Pictographic}(\\uFE0F|\\u200D\\p{Extended_Pictographic})*)', 'gu'); }
-catch (e) { EMOJI_RE = null; }
-function gradTxt(str) {
-  const s = esc(str);
-  if (!EMOJI_RE) return s;
-  return s.replace(EMOJI_RE, '<span class="emo">$1</span>');
-}
-
-function toast(msg) {
-  const t = $('#toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  clearTimeout(toast._tm);
-  toast._tm = setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-function modal(html) {
-  $('#modalContent').innerHTML = html;
-  $('#modalBack').classList.add('show');
-}
-function closeModal() { $('#modalBack').classList.remove('show'); }
-
-function confirmAction(message, yesLabel, onYesJs) {
-  modal(`
-    <p class="modal-msg">${message}</p>
-    <div class="modal-btns">
-      <button class="btn ghost" onclick="closeModal()">Annuler</button>
-      <button class="btn primary" onclick="closeModal();${onYesJs}">${esc(yesLabel)}</button>
-    </div>`);
-}
-
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $('#' + id).classList.add('active');
-}
-
 // ---------- Bouton RETOUR Android : ne jamais éjecter l'utilisateur de l'app ----------
 // On arme une entrée d'historique en entrant dans une vue ; le retour la consomme,
 // on la ré-arme et on propose de quitter PROPREMENT (retour à l'accueil, pas fermeture).
@@ -81,65 +14,6 @@ window.addEventListener('popstate', () => {
   if (S.mode === 'mc') { armeRetour(); confirmAction('Quitter la télécommande ? (la soirée continue)', 'Quitter', 'quitSoiree()'); return; }
   if (window.J && J.soireeId) { armeRetour(); confirmAction('Quitter la partie ?', 'Quitter', 'joueurQuitter()'); return; }
 });
-
-// Saisie du code directement sur l'écran (le chemin simple pour les TV : site court + 4 lettres)
-function displayCodeModal() {
-  modal(`
-    <h3>📺 Afficher une soirée</h3>
-    <p class="muted small">Entre le code de la soirée (affiché sur la télécommande de l'animateur).</p>
-    <label class="field"><span>Code (4 lettres)</span>
-      <input id="displayCode" type="text" maxlength="4" autocapitalize="characters"
-             style="text-transform:uppercase;letter-spacing:.3em;text-align:center;font-size:1.5em"></label>
-    <div class="modal-btns">
-      <button class="btn ghost" onclick="closeModal()">Annuler</button>
-      <button class="btn primary big" onclick="displayLance()">📺 Afficher</button>
-    </div>`);
-  setTimeout(() => $('#displayCode').focus(), 50);
-}
-
-function displayLance() {
-  const code = $('#displayCode').value.trim().toUpperCase();
-  if (code.length !== CODE_LENGTH) { toast('Le code fait 4 lettres.'); return; }
-  closeModal();
-  // On mémorise puis on se connecte anonymement : le routage de connexion prend le relais
-  try { localStorage.setItem('biiingo_display', JSON.stringify({ code })); } catch (e) {}
-  if (fauth.currentUser) displayEnter(code);
-  else fauth.signInAnonymously().catch(() => toast('Connexion impossible — vérifie le réseau.'));
-}
-
-// ---------- Feedback utilisateur (retours d'expérience, lus dans la console Firebase) ----------
-function feedbackModal(origine) {
-  modal(`
-    <h3>💬 Ton avis sur Biiingo</h3>
-    <p class="muted small">Un bug, une idée, un coup de cœur ? Dis-nous tout — ça nous aide énormément !</p>
-    <label class="field"><span>Ton retour</span>
-      <textarea id="fbTexte" rows="5" maxlength="2000" placeholder="J'adore les jetons qui tombent, mais…"></textarea></label>
-    <label class="field"><span>Un contact pour te répondre (optionnel)</span>
-      <input id="fbContact" type="text" maxlength="80" placeholder="email, Insta…"></label>
-    <div class="modal-btns">
-      <button class="btn ghost" onclick="closeModal()">Annuler</button>
-      <button class="btn primary" onclick="feedbackEnvoyer('${origine}')">Envoyer 💌</button>
-    </div>`);
-}
-
-async function feedbackEnvoyer(origine) {
-  const texte = $('#fbTexte').value.trim();
-  if (!texte) { toast('Écris-nous quelques mots d\'abord 🙂'); return; }
-  const contact = $('#fbContact').value.trim();
-  try {
-    await db.collection('feedback').add({
-      texte, contact, origine,
-      nom: (S.profile && S.profile.pseudo) || (window.J && J.nom) || '',
-      uid: (fauth.currentUser && fauth.currentUser.uid) || '',
-      version: APP_VERSION,
-      ts: FV.serverTimestamp()
-    });
-    closeModal();
-    toast('Merci pour ton retour ! 💖');
-  } catch (e) {
-    toast('Envoi impossible — vérifie ta connexion.');
-  }
-}
 
 // Recharge l'app en forçant une version fraîche (contourne le cache du navigateur/GitHub Pages).
 // Indispensable en mode installé (pas de barre d'adresse) : recharge index.html via une URL neuve,
@@ -480,25 +354,3 @@ window.addEventListener('load', () => {
   if (disp) window.__displayCode = disp.toUpperCase();
   initAuth();
 });
-
-// ---------- Affichage public (idée 2 — brique 1) ----------
-// Un écran (Smart TV, navigateur, Chromecast) affiche la soirée EN LECTURE SEULE via son code,
-// sans compte : connexion anonyme invisible, puis vue salle classique.
-async function displayEnter(code) {
-  try {
-    const snap = await db.collection('soirees').where('code', '==', code.toUpperCase()).get();
-    let doc = null;
-    snap.forEach(d => { if (!doc || d.data().statut === 'active') doc = d; });
-    if (!doc) {
-      showScreen('loadScreen');
-      $('#loadMsg').innerHTML = '😢 Aucune soirée avec le code <b>' + esc(code.toUpperCase()) + '</b>.<br>Vérifie le lien et recharge la page.';
-      return;
-    }
-    S.displayMode = true;
-    try { localStorage.setItem('biiingo_display', JSON.stringify({ code: code.toUpperCase() })); } catch (e) {}
-    openSoiree(doc.id, 'salle', false);
-  } catch (e) {
-    showScreen('loadScreen');
-    $('#loadMsg').innerHTML = 'Connexion impossible — vérifie le réseau de l\'écran puis recharge.';
-  }
-}
