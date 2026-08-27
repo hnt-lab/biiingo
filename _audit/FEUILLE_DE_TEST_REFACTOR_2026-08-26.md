@@ -40,6 +40,6 @@
 
 ## Publication
 
-- [ ] Fusionner la branche validée vers `main`.
-- [ ] Publier simultanément le code et `_setup/firestore.rules`.
-- [ ] Relancer `npm run test:production` après la mise en ligne.
+- [x] Fusionner la branche validée vers `main`.
+- [x] Publier simultanément le code et `_setup/firestore.rules`.
+- [x] Relancer `npm run test:production` après la mise en ligne.
