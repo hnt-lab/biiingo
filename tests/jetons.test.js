@@ -13,7 +13,7 @@ function loadJetons() {
     Number,
     Set,
     setTimeout(callback) { callback(); },
-    SECOUSSE_SEUIL: 8,
+    SECOUSSE_SEUIL: 7,
     document: {
       addEventListener(name, callback) { listeners[name] = callback; },
       visibilityState: 'visible'
@@ -61,9 +61,9 @@ test('déclenche sur une secousse modérée sans réagir aux petits mouvements',
   Jetons.engine = {};
   Jetons.dislodge = () => { falls += 1; };
   Jetons._ecouteSecousses();
-  listeners.devicemotion({ acceleration: { x: 7.9, y: 0, z: 0 } });
+  listeners.devicemotion({ acceleration: { x: 6.9, y: 0, z: 0 } });
   assert.equal(falls, 0);
-  listeners.devicemotion({ acceleration: { x: 8.1, y: 0, z: 0 } });
+  listeners.devicemotion({ acceleration: { x: 7.1, y: 0, z: 0 } });
   assert.equal(falls, 1);
 });
 
