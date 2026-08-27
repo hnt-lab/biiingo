@@ -42,7 +42,7 @@ Toutes les interfaces utilisent aujourd'hui la même page et un état partagé. 
 ## Validation
 
 - `npm run check` : syntaxe des scripts.
-- `npm test` : tests métier, règles Firestore et parcours critique dans un vrai navigateur local.
+- `npm test` : tests métier, règles Firestore, parcours multi-écrans isolé et chargement dans un vrai navigateur local.
 - `npm run test:production` : contrôle en lecture du site actuellement publié sur GitHub Pages.
 - GitHub Actions exécute `npm run check` puis `npm test` sur les branches de refactoring et les demandes de fusion vers `main`.
 - Les scénarios nécessitant Firebase, plusieurs appareils, le mouvement ou une TV restent dans la feuille de test manuel.
